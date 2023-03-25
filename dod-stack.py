@@ -109,9 +109,12 @@ class LocalStack:
         if self.vpn_checks() and self.docker_checks() and LocalStack.is_ssh_running():
             try:
                 dod_root = os.environ.get('DOD_ROOT')
-                os.chdir('{}/dod-stack'.format(dod_root))
-                p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
-                p.wait()
+                if dod_root:
+                    os.chdir('{}/dod-stack'.format(dod_root))
+                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
+                    p.wait()
+                else:
+                    print("{}DOD_ROOT env variable is not set exiting{}".format(self.RED,self.NC))
             except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                 print("{}No dod-stack repo or file or env variable DOD_ROOT is not set exiting{}".format(self.RED,self.NC))
         else:
