@@ -2,6 +2,11 @@ import subprocess
 import os
 import getpass
 import sys
+try:
+    import docker
+except ImportError:
+    print("{}Please install docker through pip: `pip install docker`{}".format('\033[0;31m','\033[0m'))
+    exit(1)
 """
 Author			: Saatvik Gulati
 Date:			: 25/03/2023
@@ -36,39 +41,51 @@ class LocalStack:
         """
         Check VPN connection
         """
-        if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
-            return True
+        try:
+            if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
+                return True
 
-        else:
-            print('{}VPN is off{}'.format(self.RED, self.NC))
+            else:
+                print('{}VPN is off{}'.format(self.RED, self.NC))
+                self.clean_up()
+                return False
+        except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+            print('\n{}Exiting script...{}'.format(self.RED, self.NC))
             self.clean_up()
-            return False
+            exit(1)
+
 
     def docker_checks(self)->bool:
         """
         Check if Docker is running and start Redis container if needed
         """
-        # check if docker is on
-        if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-            print("{}This script uses docker, and it isn't running - please start docker and try again!{}".format(self.RED, self.NC))
-            self.clean_up()
-            exit(1)
+        try:
+            # check if docker is on
+            if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+                print("{}This script uses docker, and it isn't running - please start docker and try again!{}".format(self.RED, self.NC))
+                self.clean_up()
+                exit(1)
 
-        # if docker container found running do nothing
-        running_containers = subprocess.run('docker ps -q -f name={} -f status=running'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
-        if running_containers:
-            return True
-
-        else:
-            # Check if Redis container is exited, start if needed
-            exited_containers = subprocess.run('docker ps -q -f name={} -f status=exited'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
-            if exited_containers:
-                subprocess.run('docker start {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL)
+            # if docker container found running do nothing
+            running_containers = subprocess.run('docker ps -q -f name={} -f status=running'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
+            if running_containers:
                 return True
 
             else:
-                subprocess.run('docker run --name {} -d -p 127.0.0.1:6379:6379 {}:latest'.format(self.cont_name,self.cont_name),shell=True, stdout=subprocess.DEVNULL)
-                return True
+                # Check if Redis container is exited, start if needed
+                exited_containers = subprocess.run('docker ps -q -f name={} -f status=exited'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
+                if exited_containers:
+                    subprocess.run('docker start {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL)
+                    return True
+
+                else:
+                    subprocess.run('docker run --name {} -d -p 127.0.0.1:6379:6379 {}:latest'.format(self.cont_name,self.cont_name),shell=True, stdout=subprocess.DEVNULL)
+                    return True
+        except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+            print('\n{}Exiting script...{}'.format(self.RED, self.NC))
+            self.clean_up()
+            exit(1)
+
 
     def ssh_env(self):
         if self.vpn_checks() and self.docker_checks() and self.dod_root: # if vpn and docker is on then only ssh
@@ -76,29 +93,29 @@ class LocalStack:
                 try:
                     print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
                     env_name = input().strip().lower()
+                    if env_name == 'prp1':
+                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                        p.wait()
+
+                    elif env_name == 'prd1':
+                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                        p.wait()
+                    elif env_name == 'dev2':
+                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                        p.wait()
+                    else:
+                        print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name, self.NC))
+                        self.clean_up()
+                        exit(1)
 
                 except KeyboardInterrupt: # trying to catch if somebody presses ^C
                     print('\n{}Exiting script...{}'.format(self.RED, self.NC))
                     self.clean_up()
                     exit(1)
 
-                if env_name == 'prp1':
-                    print('{}Starting ssh {}{}'.format(self.YELLOW,env_name,self.NC))
-                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                    p.wait()
-
-                elif env_name == 'prd1':
-                    print('{}Starting ssh {}{}'.format(self.YELLOW,env_name,self.NC))
-                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                    p.wait()
-                elif env_name == 'dev2':
-                    print('{}Starting ssh {}{}'.format(self.YELLOW, env_name,self.NC))
-                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                    p.wait()
-                else:
-                    print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name,self.NC))
-                    self.clean_up()
-                    exit(1)
             else:
                 print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
         else:
@@ -114,14 +131,26 @@ class LocalStack:
                 p.wait()
             except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                 print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
+            except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+                print('\n{}Exiting script...{}'.format(self.RED, self.NC))
         else:
             print("{}VPN down or docker down or or ssh is not running env variable DOD_ROOT not set{}".format(self.RED, self.NC))
 
     def clean_up(self):
         # cleans up docker and ssh session
-        subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if LocalStack.get_ssh_pid():
+            subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if self.container_exists():
+            subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def container_exists(self)->bool:
+        client=docker.from_env()
+        try:
+            client.containers.get(self.cont_name)
+            return True
+        except docker.errors.NotFound:
+            return False
 
     @staticmethod
     def is_ssh_running():
