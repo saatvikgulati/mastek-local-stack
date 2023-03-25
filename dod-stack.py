@@ -84,58 +84,59 @@ class LocalStack:
 
 
     def ssh_env(self):
-        if self.vpn_checks() and self.docker_checks() and self.dod_root: # if vpn and docker is on then only ssh
-            if not LocalStack.is_ssh_running(): # when ssh not running start ssh
-                try:
-                    print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
-                    env_name = input().strip().lower()
-                    if env_name == 'prp1':
-                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                        p.wait()
+        if self.vpn_checks() and self.docker_checks():
+            if self.dod_root: # if vpn and docker is on then only ssh
+                if not LocalStack.is_ssh_running(): # when ssh not running start ssh
+                    try:
+                        print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
+                        env_name = input().strip().lower()
+                        if env_name == 'prp1':
+                            print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                            p.wait()
 
-                    elif env_name == 'prd1':
-                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                        p.wait()
-                    elif env_name == 'dev2':
-                        print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                        p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                        p.wait()
-                    else:
-                        print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name, self.NC))
+                        elif env_name == 'prd1':
+                            print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                            p.wait()
+                        elif env_name == 'dev2':
+                            print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
+                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                            p.wait()
+                        else:
+                            print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name, self.NC))
+                            self.clean_up()
+                            exit(1)
+
+                    except KeyboardInterrupt: # trying to catch if somebody presses ^C
+                        print('\n{}Exiting script...{}'.format(self.RED, self.NC))
                         self.clean_up()
                         exit(1)
 
-                except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                    print('\n{}Exiting script...{}'.format(self.RED, self.NC))
-                    self.clean_up()
-                    exit(1)
-
+                else:
+                    print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
             else:
-                print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
-        else:
-            print("{}VPN down or docker down or env variable DOD_ROOT not set{}".format(self.RED,self.NC))
-            self.clean_up()
-            exit(1)
+                print("{}env variable DOD_ROOT not set{}".format(self.RED,self.NC))
+                self.clean_up()
+                exit(1)
     def stack_up(self):
         # final checks
-        if self.vpn_checks() and self.docker_checks() and LocalStack.is_ssh_running() and self.dod_root:
-            try:
-                os.chdir('{}/dod-stack'.format(self.dod_root))
-                p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
-                p.wait()
-            except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
-                print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
-            except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                print('\n{}Exiting script...{}'.format(self.RED, self.NC))
-        else:
-            print("{}VPN down or docker down or or ssh is not running env variable DOD_ROOT not set{}".format(self.RED, self.NC))
+        if self.vpn_checks() and self.docker_checks():
+            if self.dod_root:
+                try:
+                    os.chdir('{}/dod-stack'.format(self.dod_root))
+                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
+                    p.wait()
+                except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
+                    print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
+                except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+                    print('\n{}Exiting script...{}'.format(self.RED, self.NC))
+            else:
+                print("{}env variable DOD_ROOT not set{}".format(self.RED, self.NC))
 
     def clean_up(self):
         # cleans up docker and ssh session
-        if LocalStack.get_ssh_pid():
-            subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
