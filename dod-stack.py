@@ -113,9 +113,7 @@ class LocalStack:
                 p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
                 p.wait()
             except FileNotFoundError: # catching if file or repo doesn't exist
-                print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
-            except KeyError: # catching if env variable is not set
-                print("{}DOD_ROOT not set exiting{}".format(self.RED,self.NC))
+                print("{}No dod-stack repo or file or env variable DOD_ROOT is not set exiting{}".format(self.RED,self.NC))
         else:
             self.clean_up()
             exit(1)
