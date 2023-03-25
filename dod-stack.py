@@ -116,7 +116,7 @@ class LocalStack:
             except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                 print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
         else:
-            print("{}VPN down or docker down or env variable DOD_ROOT not set{}".format(self.RED, self.NC))
+            print("{}VPN down or docker down or or ssh is not running env variable DOD_ROOT not set{}".format(self.RED, self.NC))
 
     def clean_up(self):
         # cleans up docker and ssh session
