@@ -38,7 +38,7 @@ class LocalStack:
         Check VPN connection
         """
         try:
-            if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
+            if subprocess.call('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL) == 0:
                 return True
 
             else:
@@ -57,25 +57,25 @@ class LocalStack:
         """
         try:
             # check if docker is on
-            if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+            if subprocess.call('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
                 print("{}This script uses docker, and it isn't running - please start docker and try again!{}".format(self.RED, self.NC))
                 self.clean_up()
                 exit(1)
 
             # if docker container found running do nothing
-            running_containers = subprocess.run('docker ps -q -f name={} -f status=running'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
+            running_containers = subprocess.check_output('docker ps -q -f name={} -f status=running'.format(self.cont_name),shell=True).decode().strip()
             if running_containers:
                 return True
 
             else:
                 # Check if Redis container is exited, start if needed
-                exited_containers = subprocess.run('docker ps -q -f name={} -f status=exited'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
+                exited_containers = subprocess.check_output('docker ps -q -f name={} -f status=exited'.format(self.cont_name),shell=True).decode().strip()
                 if exited_containers:
                     subprocess.run('docker start {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL)
                     return True
 
                 else:
-                    subprocess.run('docker run --name {} -d -p 127.0.0.1:6379:6379 {}:latest'.format(self.cont_name,self.cont_name),shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.call('docker run --name {} -d -p 127.0.0.1:6379:6379 {}:latest'.format(self.cont_name,self.cont_name),shell=True, stdout=subprocess.DEVNULL)
                     return True
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
             print('\n{}Exiting script...{}'.format(self.RED, self.NC))
