@@ -101,7 +101,6 @@ class LocalStack:
                     exit(1)
             else:
                 print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
-                pass
         else:
             print("{}VPN down or docker down or env variable DOD_ROOT not set{}".format(self.RED,self.NC))
             self.clean_up()
