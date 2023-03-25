@@ -26,7 +26,9 @@ class LocalStack:
         self.GREEN = '\033[0;32m'
         self.BLUE='\033[0;94m'
         self.NC='\033[0m' # No Color
+        # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
+        # prints user and pwd
         print("You are {} in {}".format(self.user,self.cwd))
 
     def vpn_checks(self)->bool:
@@ -45,20 +47,22 @@ class LocalStack:
         """
         Check if Docker is running and start Redis container if needed
         """
+        # check if docker is on
         if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
             print("{}This script uses docker, and it isn't running - please start docker and try again!{}".format(self.RED, self.NC))
             self.clean_up()
             exit(1)
 
-        # Check if Redis container is running, start if needed
+        # if docker container found running do nothing
         running_containers = subprocess.run('docker ps -q -f name={} -f status=running'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
         if running_containers:
             return True
 
         else:
+            # Check if Redis container is exited, start if needed
             exited_containers = subprocess.run('docker ps -q -f name={} -f status=exited'.format(self.cont_name),shell=True, stdout=subprocess.PIPE).stdout.decode().strip()
             if exited_containers:
-                subprocess.run(['docker', 'start', self.cont_name], stdout=subprocess.DEVNULL)
+                subprocess.run('docker start {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL)
                 return True
 
             else:
@@ -66,13 +70,13 @@ class LocalStack:
                 return True
 
     def ssh_env(self):
-        if self.vpn_checks() and self.docker_checks():
-            if not LocalStack.is_ssh_running():
+        if self.vpn_checks() and self.docker_checks(): # if vpn and docker is on then only ssh
+            if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                 try:
                     print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
                     env_name = input().strip().lower()
 
-                except KeyboardInterrupt:
+                except KeyboardInterrupt: # trying to catch if somebody presses ^C
                     print('\n{}Exiting script...{}'.format(self.RED, self.NC))
                     self.clean_up()
                     exit(1)
@@ -95,7 +99,7 @@ class LocalStack:
                     self.clean_up()
                     exit(1)
             else:
-                print("{}ssh is running skipping{}".format(self.GREEN,self.NC))
+                print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
                 pass
         else:
             self.clean_up()
@@ -108,24 +112,27 @@ class LocalStack:
                 os.chdir('{}/dod-stack'.format(dod_root))
                 p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
                 p.wait()
-            except FileNotFoundError:
+            except FileNotFoundError: # catching if file or repo doesn't exist
                 print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
-            except KeyError:
+            except KeyError: # catching if env variable is not set
                 print("{}DOD_ROOT not set exiting{}".format(self.RED,self.NC))
         else:
             self.clean_up()
             exit(1)
     def clean_up(self):
+        # cleans up docker and ssh session
         subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     @staticmethod
     def is_ssh_running():
+        # checks if ssh is running
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
     def get_ssh_pid():
+        # gets ssh process id
         process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = process.communicate()
         if err:
