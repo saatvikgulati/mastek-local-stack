@@ -26,6 +26,7 @@ class LocalStack:
         self.GREEN = '\033[0;32m'
         self.BLUE='\033[0;94m'
         self.NC='\033[0m' # No Color
+        self.dod_root = os.environ.get('DOD_ROOT')
         # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
         # prints user and pwd
@@ -70,7 +71,7 @@ class LocalStack:
                 return True
 
     def ssh_env(self):
-        if self.vpn_checks() and self.docker_checks(): # if vpn and docker is on then only ssh
+        if self.vpn_checks() and self.docker_checks() and self.dod_root: # if vpn and docker is on then only ssh
             if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                 try:
                     print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
@@ -106,20 +107,14 @@ class LocalStack:
             exit(1)
     def stack_up(self):
         # final checks
-        if self.vpn_checks() and self.docker_checks() and LocalStack.is_ssh_running():
+        if self.vpn_checks() and self.docker_checks() and LocalStack.is_ssh_running() and self.dod_root:
             try:
-                dod_root = os.environ.get('DOD_ROOT')
-                if dod_root:
-                    os.chdir('{}/dod-stack'.format(dod_root))
-                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
-                    p.wait()
-                else:
-                    print("{}DOD_ROOT env variable is not set exiting{}".format(self.RED,self.NC))
+                os.chdir('{}/dod-stack'.format(self.dod_root))
+                p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
+                p.wait()
             except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                 print("{}No dod-stack repo or file or env variable DOD_ROOT is not set exiting{}".format(self.RED,self.NC))
-        else:
-            self.clean_up()
-            exit(1)
+
     def clean_up(self):
         # cleans up docker and ssh session
         subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
