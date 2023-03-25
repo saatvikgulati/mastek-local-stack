@@ -1,6 +1,7 @@
 import subprocess
 import os
 import getpass
+import sys
 """
 Author			: Saatvik Gulati
 Date:			: 25/03/2023
@@ -22,8 +23,10 @@ class LocalStack:
         self.cwd = os.getcwd()
         self.RED='\033[0;31m'
         self.YELLOW='\033[0;33m'
+        self.GREEN = '\033[0;32m'
         self.BLUE='\033[0;94m'
         self.NC='\033[0m' # No Color
+        sys.stdout.write("\x1b]2;DOD-Stack\x07")
         print("You are {} in {}".format(self.user,self.cwd))
 
     def vpn_checks(self)->bool:
@@ -92,6 +95,7 @@ class LocalStack:
                     self.clean_up()
                     exit(1)
             else:
+                print("{}ssh is running skipping{}".format(self.GREEN,self.NC))
                 pass
         else:
             self.clean_up()
