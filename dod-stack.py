@@ -76,14 +76,17 @@ class LocalStack:
 
                 if env_name == 'prp1':
                     print('{}Starting ssh {}{}'.format(self.YELLOW,env_name,self.NC))
-                    subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p.wait()
 
                 elif env_name == 'prd1':
                     print('{}Starting ssh {}{}'.format(self.YELLOW,env_name,self.NC))
-                    subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p.wait()
                 elif env_name == 'dev2':
                     print('{}Starting ssh {}{}'.format(self.YELLOW, env_name,self.NC))
-                    subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p=subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
+                    p.wait()
                 else:
                     print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name,self.NC))
                     self.clean_up()
@@ -104,7 +107,7 @@ class LocalStack:
             self.clean_up()
             exit(1)
     def clean_up(self):
-        subprocess.call('kill -9 {}'.format(str(self.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
