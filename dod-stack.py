@@ -90,16 +90,7 @@ class LocalStack:
                     try:
                         print('{}Please enter the env you want to ssh to- prp1 or prd1 or dev2:{}'.format(self.BLUE, self.NC))
                         env_name = input().strip().lower()
-                        if env_name == 'prp1':
-                            print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                            p.wait()
-
-                        elif env_name == 'prd1':
-                            print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                            p.wait()
-                        elif env_name == 'dev2':
+                        if env_name in ['prp1','prd1','dev2']:
                             print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
                             p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
                             p.wait()
