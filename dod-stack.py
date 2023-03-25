@@ -21,12 +21,12 @@ class LocalStack:
         self.cont_name='redis'
         self.user = getpass.getuser()
         self.cwd = os.getcwd()
+        self.dod_root = os.environ.get('DOD_ROOT')
         self.RED='\033[0;31m'
         self.YELLOW='\033[0;33m'
         self.GREEN = '\033[0;32m'
         self.BLUE='\033[0;94m'
         self.NC='\033[0m' # No Color
-        self.dod_root = os.environ.get('DOD_ROOT')
         # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
         # prints user and pwd
