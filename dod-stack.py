@@ -103,10 +103,13 @@ class LocalStack:
     def stack_up(self):
         # final checks
         if self.vpn_checks() and self.docker_checks() and LocalStack.is_ssh_running():
-            dod_root = os.environ.get('DOD_ROOT')
-            os.chdir('{}/dod-stack'.format(dod_root))
-            p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
-            p.wait()
+            try:
+                dod_root = os.environ.get('DOD_ROOT')
+                os.chdir('{}/dod-stack'.format(dod_root))
+                p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
+                p.wait()
+            except FileNotFoundError:
+                print("{}No dod-stack repo exiting{}".format(self.RED,self.NC))
         else:
             self.clean_up()
             exit(1)
