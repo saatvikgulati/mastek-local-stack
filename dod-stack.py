@@ -110,6 +110,8 @@ class LocalStack:
                 p.wait()
             except FileNotFoundError:
                 print("{}No dod-stack repo exiting{}".format(self.RED,self.NC))
+            except KeyError:
+                print("{}DOD_ROOT not set exiting{}".format(self.RED,self.NC))
         else:
             self.clean_up()
             exit(1)
