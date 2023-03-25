@@ -2,11 +2,7 @@ import subprocess
 import os
 import getpass
 import sys
-try:
-    import docker
-except ImportError:
-    print("{}Please install docker through pip: `pip install docker`{}".format('\033[0;31m','\033[0m'))
-    exit(1)
+
 """
 Author			: Saatvik Gulati
 Date:			: 25/03/2023
@@ -140,17 +136,8 @@ class LocalStack:
         # cleans up docker and ssh session
         if LocalStack.get_ssh_pid():
             subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if self.container_exists():
-            subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    def container_exists(self)->bool:
-        client=docker.from_env()
-        try:
-            client.containers.get(self.cont_name)
-            return True
-        except docker.errors.NotFound:
-            return False
 
     @staticmethod
     def is_ssh_running():
