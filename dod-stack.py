@@ -103,6 +103,7 @@ class LocalStack:
                 print("{}ssh is running skipping{}".format(self.GREEN,self.NC)) # if ssh session open then skip
                 pass
         else:
+            print("{}VPN down or docker down or env variable DOD_ROOT not set{}".format(self.RED,self.NC))
             self.clean_up()
             exit(1)
     def stack_up(self):
@@ -114,6 +115,8 @@ class LocalStack:
                 p.wait()
             except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                 print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
+        else:
+            print("{}VPN down or docker down or env variable DOD_ROOT not set{}".format(self.RED, self.NC))
 
     def clean_up(self):
         # cleans up docker and ssh session
