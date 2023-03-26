@@ -88,7 +88,7 @@ class LocalStack:
             if self.dod_root: # if vpn and docker is on then only ssh
                 if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                     try:
-                        print(f"{self.RED}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.NC}")
+                        print(f"{self.BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.NC}")
                         env_name = input().strip().lower()
                         envs=[
                             'prp1',
