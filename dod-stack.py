@@ -100,7 +100,7 @@ class LocalStack:
                             p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
                             p.wait()
                         else:
-                            print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, self.env_name, self.NC))
+                            print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, env_name, self.NC))
                             self.clean_up()
                             exit(1)
 
@@ -121,7 +121,7 @@ class LocalStack:
             if self.dod_root:
                 try:
                     os.chdir('{}/dod-stack'.format(self.dod_root))
-                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True)
+                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, stderr=subprocess.DEVNULL)
                     p.wait()
                 except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                     print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
@@ -131,10 +131,34 @@ class LocalStack:
                 print("{}env variable DOD_ROOT not set{}".format(self.RED, self.NC))
 
     def clean_up(self):
-        # cleans up docker and ssh session
+        # cleans up docker and ssh session and tmux session
+        if LocalStack.get_tmux_session_id():
+            subprocess.call('tmux kill-session -t DOD\ Stack', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    @staticmethod
+    def get_tmux_session_id():
+        # Run the `tmux ls` command and capture the output
+        try:
+            output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
+
+            # Decode the output from bytes to string
+            output = output.decode('utf-8')
+
+            # Split the output into lines
+            lines = output.strip().split('\n')
+
+            # Parse the session ID from the first line of output
+            if len(lines) > 0:
+                session_id = lines[0].split(':')[0]
+                return session_id
+
+            # If no session is found, return None
+            return None
+        except subprocess.CalledProcessError:
+            pass
 
     @staticmethod
     def is_ssh_running():
