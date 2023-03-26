@@ -138,6 +138,11 @@ class LocalStack:
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    def main(self):
+        self.ssh_env()
+        self.stack_up()
+        self.clean_up()
+
     @staticmethod
     def get_tmux_session_id():
         # Run the `tmux ls` command and capture the output
@@ -157,11 +162,6 @@ class LocalStack:
         except subprocess.CalledProcessError:
             # If no session is found, return None
             return None
-
-    def main(self):
-        self.ssh_env()
-        self.stack_up()
-        self.clean_up()
 
     @staticmethod
     def is_ssh_running():
