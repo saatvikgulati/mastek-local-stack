@@ -88,7 +88,7 @@ class LocalStack:
             if self.dod_root: # if vpn and docker is on then only ssh
                 if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                     try:
-                        print('{}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{}'.format(self.BLUE, self.NC))
+                        print("{}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{}".format(self.BLUE , self.NC))
                         env_name = input().strip().lower()
                         envs=[
                             'prp1',
@@ -122,7 +122,7 @@ class LocalStack:
                     os.chdir('{}/dod-stack'.format(self.dod_root))
                     subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
-                    print("{}An error occurred: {} install pip dependencies from dod-stack repo{}".format(self.RED, e, self.NC))
+                    print("{}An error occurred: {}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{}".format(self.RED, e, self.NC))
                 except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                     print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
