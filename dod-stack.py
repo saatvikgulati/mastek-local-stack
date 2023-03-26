@@ -133,7 +133,7 @@ class LocalStack:
     def clean_up(self):
         # cleans up docker and ssh session and tmux session
         if LocalStack.get_tmux_session_id():
-            subprocess.call('tmux kill-session -t DOD\ Stack', shell=True, stdout=subprocess.DEVNULL)
+            subprocess.call('tmux kill-session -t DOD\ Stack', shell=True)
         subprocess.call('kill -9 {}'.format(str(LocalStack.get_ssh_pid())), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker container rm -f {}'.format(self.cont_name), shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
