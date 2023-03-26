@@ -154,10 +154,8 @@ class LocalStack:
             if len(lines) > 0:
                 session_id = lines[0].split(':')[0]
                 return session_id
-
-            # If no session is found, return None
-            return None
         except subprocess.CalledProcessError:
+            # If no session is found, return None
             return None
 
     @staticmethod
