@@ -158,6 +158,11 @@ class LocalStack:
             # If no session is found, return None
             return None
 
+    def main(self):
+        self.ssh_env()
+        self.stack_up()
+        self.clean_up()
+
     @staticmethod
     def is_ssh_running():
         # checks if ssh is running
@@ -174,6 +179,4 @@ class LocalStack:
 
 if __name__=='__main__':
     local=LocalStack()
-    local.ssh_env()
-    local.stack_up()
-    local.clean_up()
+    local.main()
