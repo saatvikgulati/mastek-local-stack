@@ -97,8 +97,7 @@ class LocalStack:
                         ]
                         if env_name in envs:
                             print('{}Starting ssh {}{}'.format(self.YELLOW, env_name, self.NC))
-                            p = subprocess.Popen('ssh -fN {}'.format(env_name), shell=True)
-                            p.wait()
+                            subprocess.run('ssh -fN {}'.format(env_name), shell=True)
                         else:
                             print('{}Invalid argument \'{}\' please mention prp1 or prd1 or dev2 exiting{}'.format(self.RED, env_name, self.NC))
                             self.clean_up()
@@ -121,8 +120,9 @@ class LocalStack:
             if self.dod_root:
                 try:
                     os.chdir('{}/dod-stack'.format(self.dod_root))
-                    p=subprocess.Popen('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, stderr=subprocess.DEVNULL)
-                    p.wait()
+                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
+                except subprocess.CalledProcessError as e:
+                    print("{}An error occurred: {}{}".format(self.RED, e, self.NC))
                 except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
                     print("{}No dod-stack repo or file exiting{}".format(self.RED,self.NC))
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
