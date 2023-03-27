@@ -5,7 +5,7 @@ import sys
 
 """
 Author			: Saatvik Gulati
-Date:			: 26/03/2023
+Date:			: 27/03/2023
 Description		: To run local stack with the help of this file.
  			: This file checks for vpn, docker and in the end cleansup too
 Required		: Requires Linux to run. This will include WSL (Ubuntu preferred)
