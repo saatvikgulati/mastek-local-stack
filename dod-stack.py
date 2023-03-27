@@ -131,7 +131,7 @@ class LocalStack:
                         print(f'{self.RED}Each subfolder in TaskRunner/resources should have exactly 5 .sql files{self.NC}')
                         return False
 
-            return True
+           return True
     def stack_up(self):
         # final checks
         if self.vpn_checks() and self.docker_checks():
