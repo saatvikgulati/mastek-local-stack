@@ -2,6 +2,7 @@ import subprocess
 import os
 import getpass
 import sys
+import re
 
 """
 Author			: Saatvik Gulati
@@ -85,48 +86,67 @@ class LocalStack:
 
     def ssh_env(self):
         if self.vpn_checks() and self.docker_checks():
-            if self.dod_root: # if vpn and docker is on then only ssh
-                if not LocalStack.is_ssh_running(): # when ssh not running start ssh
-                    try: 
-                        print(f"{self.BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.NC}")
-                        env_name = input().strip().lower()
-                        envs=[
-                            'prp1',
-                            'prd1',
-                            'dev2'
-                        ]
-                        if env_name in envs:
-                            print(f'{self.YELLOW}Starting ssh {env_name}{self.NC}')
-                            subprocess.run(f'ssh -fN {env_name}', shell=True)
-                        else:
-                            print(f'{self.RED}Invalid argument \'{env_name}\' please mention prp1 or prd1 or dev2 exiting{self.NC}')
+            if self.query_check():
+                if self.dod_root: # if vpn and docker is on then only ssh
+                    if not LocalStack.is_ssh_running(): # when ssh not running start ssh
+                        try:
+                            print(f"{self.BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.NC}")
+                            env_name = input().strip().lower()
+                            envs=[
+                                'prp1',
+                                'prd1',
+                                'dev2'
+                            ]
+                            if env_name in envs:
+                                print(f'{self.YELLOW}Starting ssh {env_name}{self.NC}')
+                                subprocess.run(f'ssh -fN {env_name}', shell=True)
+                            else:
+                                print(f'{self.RED}Invalid argument \'{env_name}\' please mention prp1 or prd1 or dev2 exiting{self.NC}')
+                                self.clean_up()
+                                exit(1)
+
+                        except KeyboardInterrupt: # trying to catch if somebody presses ^C
+                            print(f'\n{self.RED}Exiting script...{self.NC}')
                             self.clean_up()
                             exit(1)
 
-                    except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                        print(f'\n{self.RED}Exiting script...{self.NC}')
-                        self.clean_up()
-                        exit(1)
-
+                    else:
+                        print(f"{self.GREEN}ssh is running skipping{self.NC}") # if ssh session open then skip
                 else:
-                    print(f"{self.GREEN}ssh is running skipping{self.NC}") # if ssh session open then skip
+                    print(f"{self.RED}env variable DOD_ROOT not set{self.NC}")
+                    self.clean_up()
+                    exit(1)
             else:
-                print(f"{self.RED}env variable DOD_ROOT not set{self.NC}")
-                self.clean_up()
                 exit(1)
+    def query_check(self)->bool:
+        if self.dod_root:
+
+            resources_dir = os.path.join(self.dod_root, 'dod-task-runner/TaskRunner/resources')
+            for root, dirs, files in os.walk(resources_dir):
+                for dir in dirs:
+                    dir_path = os.path.join(root, dir)
+                    sql_files = [f for f in os.listdir(dir_path) if
+                                 os.path.isfile(os.path.join(dir_path, f)) and f.endswith('.sql')]
+                    if len(sql_files) > 5:
+                        print(f'{self.RED}Each subfolder in TaskRunner/resources should have exactly 5 .sql files{self.NC}')
+                        return False
+
+            return True
     def stack_up(self):
         # final checks
         if self.vpn_checks() and self.docker_checks():
             if self.dod_root:
-                try:
-                    os.chdir(f'{self.dod_root}/dod-stack')
-                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
-                except subprocess.CalledProcessError as e:
-                    print(f"{self.RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.NC}")
-                except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
-                    print(f"{self.RED}No dod-stack repo or file exiting{self.NC}")
-                except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                    print(f'\n{self.RED}Exiting script...{self.NC}')
+                if self.query_check():
+                    try:
+                        os.chdir(f'{self.dod_root}/dod-stack')
+                        subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
+                    except subprocess.CalledProcessError as e:
+                        print(f"{self.RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.NC}")
+                    except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
+                        print(f"{self.RED}No dod-stack repo or file exiting{self.NC}")
+                    except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+                        print(f'\n{self.RED}Exiting script...{self.NC}')
+
             else:
                 print(f"{self.RED}env variable DOD_ROOT not set{self.NC}")
 
