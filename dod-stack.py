@@ -145,7 +145,7 @@ class LocalStack:
         self.clean_up()
 
     @staticmethod
-    def get_tmux_session_id():
+    def get_tmux_session_id()->int:
         # Run the `tmux ls` command and capture the output
         try:
             output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
@@ -165,12 +165,12 @@ class LocalStack:
             return None
 
     @staticmethod
-    def is_ssh_running():
+    def is_ssh_running()->bool:
         # checks if ssh is running
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
-    def get_ssh_pid():
+    def get_ssh_pid()->int:
         # gets ssh process id
         process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = process.communicate()
