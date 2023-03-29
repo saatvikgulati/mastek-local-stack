@@ -90,11 +90,11 @@ class LocalStack:
                         try:
                             print(f"{self.BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.NC}")
                             env_name = input().strip().lower()
-                            envs=[
+                            envs=(
                                 'prp1',
                                 'prd1',
                                 'dev2'
-                            ]
+                            )
                             if env_name in envs:
                                 print(f'{self.YELLOW}Starting ssh {env_name}{self.NC}')
                                 subprocess.run(f'ssh -fN {env_name}', shell=True)
