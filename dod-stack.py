@@ -2,7 +2,6 @@ import subprocess
 import os
 import getpass
 import sys
-import re
 
 """
 Author			: Saatvik Gulati
