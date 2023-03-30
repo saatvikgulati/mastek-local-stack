@@ -63,14 +63,14 @@ class LocalStack:
                 exit(1)
 
             # if docker container found running do nothing
-            running_containers = subprocess.check_output(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True).decode().strip()
-            if running_containers:
+            __running_containers = subprocess.check_output(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True).decode().strip()
+            if __running_containers:
                 return True
 
             else:
                 # Check if Redis container is exited, start if needed
-                exited_containers = subprocess.check_output(f'docker ps -q -f name={self.__cont_name} -f status=exited',shell=True).decode().strip()
-                if exited_containers:
+                __exited_containers = subprocess.check_output(f'docker ps -q -f name={self.__cont_name} -f status=exited',shell=True).decode().strip()
+                if __exited_containers:
                     subprocess.run(f'docker start {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL)
                     return True
 
@@ -148,18 +148,18 @@ class LocalStack:
     def get_tmux_session_id()->int:
         # Run the `tmux ls` command and capture the output
         try:
-            output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
+            __output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
 
             # Decode the output from bytes to string
-            output = output.decode('utf-8')
+            __output = __output.decode('utf-8')
 
             # Split the output into lines
-            lines = output.strip().split('\n')
+            __lines = __output.strip().split('\n')
 
             # Parse the session ID from the first line of output
-            if len(lines) > 0:
-                session_id = lines[0].split(':')[0]
-                return session_id
+            if len(__lines) > 0:
+                __session_id = lines[0].split(':')[0]
+                return __session_id
         except subprocess.CalledProcessError:
             # If no session is found, return None
             return None
@@ -172,11 +172,11 @@ class LocalStack:
     @staticmethod
     def get_ssh_pid()->int:
         # gets ssh process id
-        process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = process.communicate()
-        if err:
+        __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        __out, __err = process.communicate()
+        if __err:
             return None
-        return int(out.decode().strip()) if out else None
+        return int(__out.decode().strip()) if __out else None
 
 if __name__=='__main__':
     local=LocalStack()
