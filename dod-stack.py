@@ -2,7 +2,7 @@ import subprocess
 import os
 import getpass
 import sys
-
+import logging
 """
 Author			: Saatvik Gulati
 Date:			: 27/03/2023
@@ -28,25 +28,38 @@ class LocalStack:
         self.__GREEN = '\033[0;32m'
         self.__BLUE='\033[0;94m'
         self.__NC='\033[0m' # No Color
+        self.logger=LocalStack.setup_logger()
         # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
         # prints user and pwd
-        print(f"You are {self.__user} in {self.__cwd}")
+        self.logger.info(f"You are {self.__user} in {self.__cwd}")
+
+    @staticmethod
+    def setup_logger() -> logging.Logger:
+        __logger = logging.getLogger('LocalStack')
+        __logger.setLevel(logging.DEBUG )
+        __log_format='%(asctime)s - %(levelname)s - %(message)s'
+        __date_format='%d-%m-%Y %H:%M:%S'
+        __formatter = logging.Formatter(fmt=__log_format,datefmt=__date_format)
+        __console_handler = logging.StreamHandler(sys.stdout)
+        __console_handler.setFormatter(__formatter)
+        __logger.addHandler(__console_handler)
+        return __logger
 
     def vpn_checks(self)->bool:
         """
         Check VPN connection
         """
         try:
-            if subprocess.call('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL) == 0:
+            if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
                 return True
 
             else:
-                print(f'{self.__RED}VPN is off{self.__NC}')
+                self.logger.critical(f'{self.__RED}VPN is off{self.__NC}')
                 self.clean_up()
                 return False
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            print(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -57,8 +70,8 @@ class LocalStack:
         """
         try:
             # check if docker is on
-            if subprocess.call('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
-                print(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
+            if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+                self.logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
                 self.clean_up()
                 exit(1)
 
@@ -75,10 +88,10 @@ class LocalStack:
                     return True
 
                 else:
-                    subprocess.call(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
                     return True
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            print(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -88,7 +101,7 @@ class LocalStack:
                 if self.__dod_root: # if vpn and docker is on then only ssh
                     if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                         try:
-                            print(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.__NC}")
+                            self.logger.info(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.__NC}")
                             __env_name = input().strip().lower()
                             __envs=(
                                 'prp1',
@@ -96,22 +109,22 @@ class LocalStack:
                                 'dev2'
                             )
                             if __env_name in __envs:
-                                print(f'{self.__YELLOW}Starting ssh {__env_name}{self.__NC}')
+                                self.logger.info(f'{self.__YELLOW}Starting ssh {__env_name}{self.__NC}')
                                 subprocess.run(f'ssh -fN {__env_name}', shell=True)
                             else:
-                                print(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
+                                self.logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
                                 self.clean_up()
                                 exit(1)
 
                         except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                            print(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
                             self.clean_up()
                             exit(1)
 
                     else:
-                        print(f"{self.__GREEN}ssh is running skipping{self.__NC}") # if ssh session open then skip
+                        self.logger.info(f"{self.__GREEN}ssh is running skipping{self.__NC}") # if ssh session open then skip
                 else:
-                    print(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                    self.logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                     self.clean_up()
                     exit(1)
     def stack_up(self):
@@ -122,22 +135,22 @@ class LocalStack:
                     os.chdir(f'{self.__dod_root}/dod-stack')
                     subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
-                    print(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
+                    self.logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
                 except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
-                    print(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
+                    self.logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                    print(f'\n{self.__RED}Exiting script...{self.__NC}')
+                    self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
 
             else:
-                print(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                self.logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
 
     def clean_up(self):
         # cleans up docker and ssh session and tmux session
         if LocalStack.get_tmux_session_id():
-            subprocess.call('tmux kill-session -t DOD\ Stack', shell=True)
-        subprocess.call(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.call(f'docker container rm -f {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.call('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
+        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f'docker container rm -f {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
         self.ssh_env()
@@ -158,7 +171,7 @@ class LocalStack:
 
             # Parse the session ID from the first line of output
             if len(__lines) > 0:
-                __session_id = lines[0].split(':')[0]
+                __session_id = __lines[0].split(':')[0]
                 return __session_id
         except subprocess.CalledProcessError:
             # If no session is found, return None
@@ -173,7 +186,7 @@ class LocalStack:
     def get_ssh_pid()->int:
         # gets ssh process id
         __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        __out, __err = process.communicate()
+        __out, __err = __process.communicate()
         if __err:
             return None
         return int(__out.decode().strip()) if __out else None
