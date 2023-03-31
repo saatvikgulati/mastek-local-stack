@@ -38,7 +38,7 @@ class LocalStack:
     def setup_logger() -> logging.Logger:
         __logger = logging.getLogger('LocalStack')
         __logger.setLevel(logging.DEBUG )
-        __log_format='%(asctime)s - %(levelname)s - %(message)s'
+        __log_format='%(asctime)s - %(levelname)s : %(message)s'
         __date_format='%d-%m-%Y %H:%M:%S'
         __formatter = logging.Formatter(fmt=__log_format,datefmt=__date_format)
         __console_handler = logging.StreamHandler(sys.stdout)
