@@ -4,17 +4,14 @@ import getpass
 import sys
 import logging
 """
-Author			: Saatvik Gulati
-Date:			: 27/03/2023
-Description		: To run local stack with the help of this file.
- 			: This file checks for vpn, docker and in the end cleansup too
-Required		: Requires Linux to run. This will include WSL (Ubuntu preferred)
-			: Requires env defination to be upto date in ssh config, .pgpass
-Usage Example		: To run the file python dod-stack.py or python3 dod-stack.py
-         	      	: Enter env which you want to ssh to
-				: prp1
-				: prd1
-				: dev2
+Author: Saatvik Gulati
+Date: 31/03/2023
+Description: Runs a local stack and performs necessary checks.
+Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
+Usage Example: 
+  To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
+  When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
+
 """
 class LocalStack:
 
@@ -101,8 +98,7 @@ class LocalStack:
                 if self.__dod_root: # if vpn and docker is on then only ssh
                     if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                         try:
-                            self.__logger.info(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.__NC}")
-                            __env_name = input().strip().lower()
+                            __env_name = input(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
                             __env_s=(
                                 'prp1',
                                 'prd1',
