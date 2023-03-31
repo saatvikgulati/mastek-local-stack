@@ -59,7 +59,7 @@ class LocalStack:
                 self.clean_up()
                 return False
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -91,7 +91,7 @@ class LocalStack:
                     subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
                     return True
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -103,12 +103,12 @@ class LocalStack:
                         try:
                             self.__logger.info(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2{self.__NC}")
                             __env_name = input().strip().lower()
-                            __envs=(
+                            __env_s=(
                                 'prp1',
                                 'prd1',
                                 'dev2'
                             )
-                            if __env_name in __envs:
+                            if __env_name in __env_s:
                                 self.__logger.info(f'{self.__YELLOW}Starting ssh {__env_name}{self.__NC}')
                                 subprocess.run(f'ssh -fN {__env_name}', shell=True)
                             else:
@@ -117,7 +117,7 @@ class LocalStack:
                                 exit(1)
 
                         except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
                             self.clean_up()
                             exit(1)
 
