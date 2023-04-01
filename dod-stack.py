@@ -41,10 +41,10 @@ class LocalStack:
             logging.WARNING: self.__YELLOW,
             logging.ERROR: self.__RED,
             logging.CRITICAL: self.__WNR
-        }   
+        }
         for level, color in __log_colors.items():
             logging.addLevelName(level, color + logging.getLevelName(level) + self.__NC)
-        __logger.setLevel(logging.DEBUG )
+        __logger.setLevel(logging.DEBUG)
         __log_format='%(asctime)s - %(levelname)s : %(message)s'
         __date_format='%d-%m-%Y %H:%M:%S'
         __formatter = logging.Formatter(fmt=__log_format,datefmt=__date_format)
