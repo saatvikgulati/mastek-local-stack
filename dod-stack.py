@@ -41,12 +41,7 @@ class LocalStack:
             logging.WARNING: self.__YELLOW,
             logging.ERROR: self.__RED,
             logging.CRITICAL: self.__WNR
-        }
-        logging.addLevelName(logging.DEBUG, "DEBUG")
-        logging.addLevelName(logging.INFO, "INFO")
-        logging.addLevelName(logging.WARNING, "WARNING")
-        logging.addLevelName(logging.ERROR, "ERROR")
-        logging.addLevelName(logging.CRITICAL, "CRITICAL")
+        }   
         for level, color in __log_colors.items():
             logging.addLevelName(level, color + logging.getLevelName(level) + self.__NC)
         __logger.setLevel(logging.DEBUG )
