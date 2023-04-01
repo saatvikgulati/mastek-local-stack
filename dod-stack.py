@@ -3,12 +3,13 @@ import os
 import getpass
 import sys
 import logging
+from typing import Union
 """
 Author: Saatvik Gulati
-Date: 31/03/2023
+Date: 1/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
-Usage Example: 
+Usage Example:
   To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
   When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
 
@@ -154,7 +155,7 @@ class LocalStack:
         self.clean_up()
 
     @staticmethod
-    def get_tmux_session_id()->int:
+    def get_tmux_session_id()->Union[int,None]:
         # Run the `tmux ls` command and capture the output
         try:
             __output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
@@ -179,7 +180,7 @@ class LocalStack:
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
-    def get_ssh_pid()->int:
+    def get_ssh_pid()->Union[int,None]:
         # gets ssh process id
         __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         __out, __err = __process.communicate()
