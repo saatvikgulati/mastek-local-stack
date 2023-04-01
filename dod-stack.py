@@ -3,7 +3,6 @@ import os
 import getpass
 import sys
 import logging
-from typing import Union
 """
 Author: Saatvik Gulati
 Date: 1/04/2023
@@ -26,15 +25,30 @@ class LocalStack:
         self.__GREEN = '\033[0;32m'
         self.__BLUE='\033[0;94m'
         self.__NC='\033[0m' # No Color
-        self.__logger=LocalStack.setup_logger()
+        self.__WNR='\033[1;41m' + '\033[1;37m'
+        self.__VIOLET='\033[1;35m'
+        self.__logger=self.setup_logger()
         # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
         # prints user and pwd
-        self.__logger.info(f"You are {self.__user} in {self.__cwd}")
+        self.__logger.debug(f"{self.__BLUE}You are {self.__user} in {self.__cwd}{self.__NC}")
 
-    @staticmethod
-    def setup_logger() -> logging.Logger:
+    def setup_logger(self) -> logging.Logger:
         __logger = logging.getLogger('LocalStack')
+        __log_colors={
+            logging.DEBUG: self.__BLUE,
+            logging.INFO: self.__GREEN,
+            logging.WARNING: self.__YELLOW,
+            logging.ERROR: self.__RED,
+            logging.CRITICAL: self.__WNR
+        }
+        logging.addLevelName(logging.DEBUG, "DEBUG")
+        logging.addLevelName(logging.INFO, "INFO")
+        logging.addLevelName(logging.WARNING, "WARNING")
+        logging.addLevelName(logging.ERROR, "ERROR")
+        logging.addLevelName(logging.CRITICAL, "CRITICAL")
+        for level, color in __log_colors.items():
+            logging.addLevelName(level, color + logging.getLevelName(level) + self.__NC)
         __logger.setLevel(logging.DEBUG )
         __log_format='%(asctime)s - %(levelname)s : %(message)s'
         __date_format='%d-%m-%Y %H:%M:%S'
@@ -53,11 +67,11 @@ class LocalStack:
                 return True
 
             else:
-                self.__logger.critical(f'{self.__RED}VPN is off{self.__NC}')
+                self.__logger.critical(f'{self.__WNR}VPN is off{self.__NC}')
                 self.clean_up()
                 return False
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -69,7 +83,7 @@ class LocalStack:
         try:
             # check if docker is on
             if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-                self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
+                self.__logger.critical(f"{self.__WNR}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
                 self.clean_up()
                 exit(1)
 
@@ -89,7 +103,7 @@ class LocalStack:
                     subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
                     return True
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             exit(1)
 
@@ -99,14 +113,14 @@ class LocalStack:
                 if self.__dod_root: # if vpn and docker is on then only ssh
                     if not LocalStack.is_ssh_running(): # when ssh not running start ssh
                         try:
-                            __env_name = input(f"{self.__BLUE}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
+                            __env_name = input(f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
                             __env_s=(
                                 'prp1',
                                 'prd1',
                                 'dev2'
                             )
                             if __env_name in __env_s:
-                                self.__logger.info(f'{self.__YELLOW}Starting ssh {__env_name}{self.__NC}')
+                                self.__logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
                                 subprocess.run(f'ssh -fN {__env_name}', shell=True)
                             else:
                                 self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
@@ -114,12 +128,12 @@ class LocalStack:
                                 exit(1)
 
                         except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                            self.__logger.info(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
                             self.clean_up()
                             exit(1)
 
                     else:
-                        self.__logger.info(f"{self.__GREEN}ssh is running skipping{self.__NC}") # if ssh session open then skip
+                        self.__logger.warning(f"{self.__YELLOW}ssh is running skipping{self.__NC}") # if ssh session open then skip
                 else:
                     self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                     self.clean_up()
@@ -155,7 +169,7 @@ class LocalStack:
         self.clean_up()
 
     @staticmethod
-    def get_tmux_session_id()->Union[int,None]:
+    def get_tmux_session_id()->int:
         # Run the `tmux ls` command and capture the output
         try:
             __output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
@@ -172,7 +186,7 @@ class LocalStack:
                 return __session_id
         except subprocess.CalledProcessError:
             # If no session is found, return None
-            return None
+            return 0
 
     @staticmethod
     def is_ssh_running()->bool:
@@ -180,12 +194,12 @@ class LocalStack:
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
-    def get_ssh_pid()->Union[int,None]:
+    def get_ssh_pid()->int:
         # gets ssh process id
         __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         __out, __err = __process.communicate()
         if __err:
-            return None
+            return 0
         return int(__out.decode().strip()) if __out else None
 
 if __name__=='__main__':
