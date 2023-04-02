@@ -3,9 +3,10 @@ import os
 import getpass
 import sys
 import logging
+import time
 """
 Author: Saatvik Gulati
-Date: 1/04/2023
+Date: 2/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -21,11 +22,10 @@ class LocalStack:
         self.__cwd = os.getcwd()
         self.__dod_root = os.environ.get('DOD_ROOT')
         self.__RED='\033[0;31m'
-        self.__YELLOW='\033[0;33m'
+        self.__AMBER='\033[38;5;208m'
         self.__GREEN = '\033[0;32m'
         self.__BLUE='\033[0;94m'
         self.__NC='\033[0m' # No Color
-        self.__WNR='\033[1;41m' + '\033[1;37m'
         self.__VIOLET='\033[1;35m'
         self.__logger=self.setup_logger()
         # set title of shell
@@ -35,18 +35,23 @@ class LocalStack:
 
     def setup_logger(self) -> logging.Logger:
         __logger = logging.getLogger('LocalStack')
-        log_colors = {
+        # Setting logging colors
+        __log_colors = {
             logging.DEBUG: self.__BLUE,
             logging.INFO: self.__GREEN,
-            logging.WARNING: self.__YELLOW,
+            logging.WARNING: self.__AMBER,
             logging.ERROR: self.__RED,
-            logging.CRITICAL: self.__WNR
+            logging.CRITICAL: self.__RED
         }
         __log_format = '%(asctime)s - %(levelname)s : %(message)s'
         __date_format = '%d-%m-%Y %H:%M:%S'
-        __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
-        for level, color in log_colors.items():
+        # Set level and message color
+        for level, color in __log_colors.items():
             logging.addLevelName(level, color + logging.getLevelName(level) + self.__NC)
+
+        __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
+        # Set different colors for asctime based on the logging level
+        __formatter.formatTime = lambda record, datefmt=__date_format: f"{__log_colors[record.levelno]}{time.strftime(datefmt, time.localtime(record.created))}{self.__NC}"
         __logger.setLevel(logging.DEBUG)
         __console_handler = logging.StreamHandler(sys.stdout)
         __logger.addHandler(__console_handler)
@@ -62,7 +67,7 @@ class LocalStack:
                 return True
 
             else:
-                self.__logger.critical(f'{self.__WNR}VPN is off{self.__NC}')
+                self.__logger.critical(f'{self.__RED}VPN is off{self.__NC}')
                 self.clean_up()
                 return False
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
@@ -78,7 +83,7 @@ class LocalStack:
         try:
             # check if docker is on
             if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-                self.__logger.critical(f"{self.__WNR}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
+                self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
                 self.clean_up()
                 exit(1)
 
@@ -128,7 +133,7 @@ class LocalStack:
                             exit(1)
 
                     else:
-                        self.__logger.warning(f"{self.__YELLOW}ssh is running skipping{self.__NC}") # if ssh session open then skip
+                        self.__logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}") # if ssh session open then skip
                 else:
                     self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                     self.clean_up()
