@@ -73,7 +73,7 @@ class LocalStack:
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
             self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
-            exit(1)
+            sys.exit(1)
 
 
     def docker_checks(self)->bool:
@@ -85,7 +85,7 @@ class LocalStack:
             if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
                 self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
                 self.clean_up()
-                exit(1)
+                sys.exit(1)
 
             # if docker container found running do nothing
             __running_containers = subprocess.check_output(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True).decode().strip()
@@ -105,7 +105,7 @@ class LocalStack:
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
             self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
-            exit(1)
+            sys.exit(1)
 
 
     def ssh_env(self):
@@ -125,19 +125,19 @@ class LocalStack:
                             else:
                                 self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
                                 self.clean_up()
-                                exit(1)
+                                sys.exit(1)
 
                         except KeyboardInterrupt: # trying to catch if somebody presses ^C
                             self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
                             self.clean_up()
-                            exit(1)
+                            sys.exit(1)
 
                     else:
                         self.__logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}") # if ssh session open then skip
                 else:
                     self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                     self.clean_up()
-                    exit(1)
+                    sys.exit(1)
     def stack_up(self):
         # final checks
         if self.vpn_checks() and self.docker_checks():
