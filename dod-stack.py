@@ -28,8 +28,6 @@ class LocalStack:
         self.__NC='\033[0m' # No Color
         self.__VIOLET='\033[1;35m'
         self.logger=self.setup_logger()
-        # set title of shell
-        sys.stdout.write("\x1b]2;DOD-Stack\x07")
 
     def setup_logger(self) -> logging.Logger:
         __logger = logging.getLogger('LocalStack')
@@ -162,6 +160,8 @@ class LocalStack:
         subprocess.run('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
+        # set title of shell
+        sys.stdout.write("\x1b]2;DOD-Stack\x07")
         # prints user and pwd
         self.logger.debug(f"{self.__BLUE}You are {self.__user} in {self.__cwd}{self.__NC}")
         self.ssh_env()
@@ -207,4 +207,4 @@ if __name__=='__main__':
     if sys.platform=='linux':
         local.main()
     else:
-        local.logger.error('This script only works on Linux machines.')
+        local.logger.error('This script only works on Linux machines or WSL.')
