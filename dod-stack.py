@@ -6,7 +6,7 @@ import logging
 import time
 """
 Author: Saatvik Gulati
-Date: 3/04/2023
+Date: 4/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -207,4 +207,4 @@ if __name__=='__main__':
     if sys.platform=='linux':
         local.main()
     else:
-        local.logger.critical('This script only works on Linux machines.')
+        local.logger.error('This script only works on Linux machines.')
