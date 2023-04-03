@@ -6,7 +6,7 @@ import logging
 import time
 """
 Author: Saatvik Gulati
-Date: 2/04/2023
+Date: 3/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -27,11 +27,9 @@ class LocalStack:
         self.__BLUE='\033[0;94m'
         self.__NC='\033[0m' # No Color
         self.__VIOLET='\033[1;35m'
-        self.__logger=self.setup_logger()
+        self.logger=self.setup_logger()
         # set title of shell
         sys.stdout.write("\x1b]2;DOD-Stack\x07")
-        # prints user and pwd
-        self.__logger.debug(f"{self.__BLUE}You are {self.__user} in {self.__cwd}{self.__NC}")
 
     def setup_logger(self) -> logging.Logger:
         __logger = logging.getLogger('LocalStack')
@@ -67,11 +65,11 @@ class LocalStack:
                 return True
 
             else:
-                self.__logger.critical(f'{self.__RED}VPN is off{self.__NC}')
+                self.logger.critical(f'{self.__RED}VPN is off{self.__NC}')
                 self.clean_up()
                 return False
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             sys.exit(1)
 
@@ -83,7 +81,7 @@ class LocalStack:
         try:
             # check if docker is on
             if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-                self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
+                self.logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker and try again!{self.__NC}")
                 self.clean_up()
                 sys.exit(1)
 
@@ -103,7 +101,7 @@ class LocalStack:
                     subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
                     return True
         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             sys.exit(1)
 
@@ -120,22 +118,22 @@ class LocalStack:
                                 'dev2'
                             )
                             if __env_name in __env_s:
-                                self.__logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
+                                self.logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
                                 subprocess.run(f'ssh -fN {__env_name}', shell=True)
                             else:
-                                self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
+                                self.logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
                                 self.clean_up()
                                 sys.exit(1)
 
                         except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
                             self.clean_up()
                             sys.exit(1)
 
                     else:
-                        self.__logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}") # if ssh session open then skip
+                        self.logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}") # if ssh session open then skip
                 else:
-                    self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                    self.logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                     self.clean_up()
                     sys.exit(1)
     def stack_up(self):
@@ -146,14 +144,14 @@ class LocalStack:
                     os.chdir(f'{self.__dod_root}/dod-stack')
                     subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
-                    self.__logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
+                    self.logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
                 except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
-                    self.__logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
+                    self.logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                    self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                    self.logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
 
             else:
-                self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                self.logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
 
     def clean_up(self):
         # cleans up docker and ssh session and tmux session
@@ -164,6 +162,8 @@ class LocalStack:
         subprocess.run('docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
+        # prints user and pwd
+        self.logger.debug(f"{self.__BLUE}You are {self.__user} in {self.__cwd}{self.__NC}")
         self.ssh_env()
         self.stack_up()
         self.clean_up()
@@ -203,5 +203,8 @@ class LocalStack:
         return int(__out.decode().strip()) if __out else None
 
 if __name__=='__main__':
-    local=LocalStack()
-    local.main()
+    local = LocalStack()
+    if sys.platform=='linux':
+        local.main()
+    else:
+        local.logger.critical('This script only works on Linux machines.')
