@@ -57,6 +57,7 @@ class LocalStack:
     def vpn_checks(self)->bool:
         """
         Check VPN connection
+        Constantly  checks for vpn connection
         """
         while True:
             try:
@@ -77,6 +78,7 @@ class LocalStack:
     def docker_checks(self)->bool:
         """
         Check if Docker is running and start Redis container if needed
+        If docker is off will constantly check till it ons
         """
         while True:
             try:
