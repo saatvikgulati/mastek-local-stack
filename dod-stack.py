@@ -119,10 +119,12 @@ class LocalStack:
                                 if __env_name in __env_s:
                                     self.__logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
                                     subprocess.run(f'ssh -fN {__env_name}', shell=True)
+                                    if LocalStack.is_ssh_running():
+                                        break
                                 else:
                                     self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
                                     self.clean_up()
-                                    sys.exit(1)
+                                    continue
 
                             except KeyboardInterrupt: # trying to catch if somebody presses ^C
                                 self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
