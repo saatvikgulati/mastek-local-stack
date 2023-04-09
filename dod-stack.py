@@ -65,7 +65,7 @@ class LocalStack:
                     return True
 
                 else:
-                    self.__logger.critical(f'{self.__RED}VPN is off retying in 5 seconds{self.__NC}')
+                    self.__logger.critical(f'{self.__RED}VPN is off retrying in 5 seconds{self.__NC}')
                     self.clean_up()
                     time.sleep(5)
                     continue
@@ -84,7 +84,7 @@ class LocalStack:
             try:
             # check if docker is on
                 if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-                    self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker trying again in 5 seconds{self.__NC}")
+                    self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker retrying again in 5 seconds{self.__NC}")
                     time.sleep(5)
                     continue
 
