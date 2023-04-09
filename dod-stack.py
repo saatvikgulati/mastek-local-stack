@@ -122,8 +122,7 @@ class LocalStack:
                                     if LocalStack.is_ssh_running():
                                         break
                                 else:
-                                    self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 exiting{self.__NC}')
-                                    self.clean_up()
+                                    self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
                                     continue
 
                             except KeyboardInterrupt: # trying to catch if somebody presses ^C
