@@ -6,7 +6,7 @@ import logging
 import time
 """
 Author: Saatvik Gulati
-Date: 9/04/2023
+Date: 10/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -56,8 +56,7 @@ class LocalStack:
 
     def vpn_checks(self)->bool:
         """
-        Check VPN connection
-        Constantly  checks for vpn connection
+        Constantly Checks VPN connection
         """
         while True:
             try:
@@ -77,8 +76,7 @@ class LocalStack:
 
     def docker_checks(self)->bool:
         """
-        Check if Docker is running and start Redis container if needed
-        If docker is off will constantly check till it ons
+        Constantly Check if Docker is running and start Redis container if needed
         """
         while True:
             try:
