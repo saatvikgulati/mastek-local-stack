@@ -10,8 +10,8 @@ Date: 11/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
-  To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
-  When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
+    To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
+    When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
 
 """
 class LocalStack:
@@ -19,6 +19,7 @@ class LocalStack:
     def __init__(self):
         """
         Declaring env variables
+        :rtype: void
         """
         self.__cont_name='redis'
         self.__user = getpass.getuser()
@@ -35,6 +36,8 @@ class LocalStack:
     def setup_logger(self) -> logging.Logger:
         """
         Setting up logging
+        :return: formatted logger
+        :rtype: logging.Logger
         """
         __logger = logging.getLogger(__name__)
         # Setting logging colors
@@ -63,6 +66,9 @@ class LocalStack:
     def vpn_checks(self)->bool:
         """
         Constantly Checks VPN connection
+        :return: true if vpn on
+        :rtype: bool
+        :exception KeyboardInterrupt: catching ^c
         """
         while True:
             try:
@@ -82,6 +88,9 @@ class LocalStack:
     def docker_checks(self)->bool:
         """
         Constantly Check if Docker is running and start Redis container if needed
+        :return: true is docker on
+        :rtype: bool
+        :exception KeyboardInterrupt: catching ^c
         """
         while True:
             try:
@@ -112,6 +121,8 @@ class LocalStack:
     def ssh_env(self):
         """
         Constantly checks for ssh params
+        :rtype: void or exit
+        :exception KeyboardInterrupt: catching ^c
         """
         while True:
             if self.vpn_checks() and self.docker_checks(): # if vpn and docker is on then only ssh
@@ -148,6 +159,10 @@ class LocalStack:
     def stack_up(self):
         """
         final checks
+        :exception subprocess.CalledProcessError: package error
+        :exception FileNotFoundError: repo or file not found
+        :exception KeyboardInterrupt: catching ^c
+        :rtype: void
         """
         if self.vpn_checks() and self.docker_checks():
             if self.__dod_root:
@@ -167,6 +182,7 @@ class LocalStack:
     def clean_up(self):
         """
         cleans up docker and ssh session and tmux session
+        :rtype: void
         """
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
@@ -176,6 +192,7 @@ class LocalStack:
     def main(self):
         """
         Main function for program
+        :rtype: void
         """
         if sys.platform == 'linux':
             # set title of shell
@@ -192,6 +209,9 @@ class LocalStack:
     def get_tmux_session_id()->int:
         """
         get tmux session id
+        :return: tmux session id
+        :rtype: int
+        :exception subprocess.CallProcessError: no session exception
         """
         try:
             __output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
@@ -214,6 +234,8 @@ class LocalStack:
     def is_ssh_running()->bool:
         """
         checks if ssh is running
+        :return: ssh running true or false
+        :rtype: bool
         """
         return True if LocalStack.get_ssh_pid() else False
 
@@ -221,6 +243,8 @@ class LocalStack:
     def get_ssh_pid()->int:
         """
         gets ssh process id
+        :return: ssh process id
+        :rtype: int
         """
         __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         __out, __err = __process.communicate()
