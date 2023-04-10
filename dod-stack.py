@@ -17,6 +17,9 @@ Usage Example:
 class LocalStack:
 
     def __init__(self):
+        """
+        Declaring env variables
+        """
         self.__cont_name='redis'
         self.__user = getpass.getuser()
         self.__cwd = os.getcwd()
@@ -30,6 +33,9 @@ class LocalStack:
         self.__logger=self.setup_logger()
 
     def setup_logger(self) -> logging.Logger:
+        """
+        Setting up logging
+        """
         __logger = logging.getLogger('LocalStack')
         # Setting logging colors
         __log_colors = {
@@ -105,6 +111,9 @@ class LocalStack:
 
 
     def ssh_env(self):
+        """
+        Constantly checks for ssh params
+        """
         while True:
             if self.vpn_checks() and self.docker_checks(): # if vpn and docker is on then only ssh
                     if self.__dod_root:
@@ -138,30 +147,37 @@ class LocalStack:
                         self.clean_up()
                         sys.exit(1)
     def stack_up(self):
-        # final checks
-            if self.vpn_checks() and self.docker_checks():
-                if self.__dod_root:
-                    try:
-                        os.chdir(f'{self.__dod_root}/dod-stack')
-                        subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
-                    except subprocess.CalledProcessError as e:
-                        self.__logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
-                    except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
-                        self.__logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
-                    except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                        self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+        """
+        final checks
+        """
+        if self.vpn_checks() and self.docker_checks():
+            if self.__dod_root:
+                try:
+                    os.chdir(f'{self.__dod_root}/dod-stack')
+                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
+                except subprocess.CalledProcessError as e:
+                    self.__logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
+                except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
+                    self.__logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
+                except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+                    self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
 
-                else:
-                    self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+            else:
+                self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
 
     def clean_up(self):
-        # cleans up docker and ssh session and tmux session
+        """
+        cleans up docker and ssh session and tmux session
+        """
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
         subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
+        """
+        Main function for program
+        """
         if sys.platform == 'linux':
             # set title of shell
             sys.stdout.write("\x1b]2;DOD-Stack\x07")
@@ -175,7 +191,9 @@ class LocalStack:
 
     @staticmethod
     def get_tmux_session_id()->int:
-        # Run the `tmux ls` command and capture the output
+        """
+        get tmux session id
+        """
         try:
             __output = subprocess.check_output('tmux ls', shell=True, stderr=subprocess.DEVNULL)
 
@@ -190,17 +208,21 @@ class LocalStack:
                 __session_id = __lines[0].split(':')[0]
                 return __session_id
         except subprocess.CalledProcessError:
-            # If no session is found, return None
+            # If no session is found, return 0
             return 0
 
     @staticmethod
     def is_ssh_running()->bool:
-        # checks if ssh is running
+        """
+        checks if ssh is running
+        """
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
     def get_ssh_pid()->int:
-        # gets ssh process id
+        """
+        gets ssh process id
+        """
         __process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         __out, __err = __process.communicate()
         if __err:
