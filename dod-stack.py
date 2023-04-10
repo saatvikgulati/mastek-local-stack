@@ -137,8 +137,6 @@ class LocalStack:
                         self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
                         self.clean_up()
                         sys.exit(1)
-            else:
-                break
     def stack_up(self):
         # final checks
             if self.vpn_checks() and self.docker_checks():
