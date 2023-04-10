@@ -71,7 +71,6 @@ class LocalStack:
 
                 else:
                     self.__logger.critical(f'{self.__RED}VPN is off retrying in 5 seconds{self.__NC}')
-                    self.clean_up()
                     time.sleep(5)
                     continue
             except KeyboardInterrupt:  # trying to catch if somebody presses ^C
