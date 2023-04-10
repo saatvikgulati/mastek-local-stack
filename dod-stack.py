@@ -36,7 +36,7 @@ class LocalStack:
         """
         Setting up logging
         """
-        __logger = logging.getLogger('LocalStack')
+        __logger = logging.getLogger(__name__)
         # Setting logging colors
         __log_colors = {
             logging.DEBUG: self.__BLUE,
