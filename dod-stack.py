@@ -6,7 +6,7 @@ import logging
 import time
 """
 Author: Saatvik Gulati
-Date: 10/04/2023
+Date: 11/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -92,7 +92,7 @@ class LocalStack:
                     continue
 
                 # if docker container found running do nothing
-                if subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True,stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True,stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     return True
 
                 elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited',shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
