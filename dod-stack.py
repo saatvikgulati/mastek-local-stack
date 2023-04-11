@@ -6,7 +6,7 @@ import logging
 import time
 """
 Author: Saatvik Gulati
-Date: 11/04/2023
+Date: 12/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -17,10 +17,6 @@ Usage Example:
 class LocalStack:
 
     def __init__(self):
-        """
-        Declaring env variables
-        :rtype: void
-        """
         self.__cont_name='redis'
         self.__user = getpass.getuser()
         self.__cwd = os.getcwd()
