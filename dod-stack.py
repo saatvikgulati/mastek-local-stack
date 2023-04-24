@@ -4,9 +4,10 @@ import getpass
 import sys
 import logging
 import time
+
 """
 Author: Saatvik Gulati
-Date: 12/04/2023
+Date: 24/04/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
 Usage Example:
@@ -14,20 +15,22 @@ Usage Example:
     When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
 
 """
+
+
 class LocalStack:
 
     def __init__(self):
-        self.__cont_name='redis'
+        self.__cont_name = 'redis'
         self.__user = getpass.getuser()
         self.__cwd = os.getcwd()
         self.__dod_root = os.environ.get('DOD_ROOT')
-        self.__RED='\033[0;31m'
-        self.__AMBER='\033[38;5;208m'
+        self.__RED = '\033[0;31m'
+        self.__AMBER = '\033[38;5;208m'
         self.__GREEN = '\033[0;32m'
-        self.__BLUE='\033[0;94m'
-        self.__NC='\033[0m' # No Color
-        self.__VIOLET='\033[1;35m'
-        self.__logger=self.setup_logger()
+        self.__BLUE = '\033[0;94m'
+        self.__NC = '\033[0m'  # No Color
+        self.__VIOLET = '\033[1;35m'
+        self.__logger = self.setup_logger()
 
     def setup_logger(self) -> logging.Logger:
         """
@@ -59,7 +62,7 @@ class LocalStack:
         __console_handler.setFormatter(__formatter)
         return __logger
 
-    def vpn_checks(self)->bool:
+    def vpn_checks(self) -> bool:
         """
         Constantly Checks VPN connection
         :return: true if vpn on
@@ -80,8 +83,7 @@ class LocalStack:
                 self.clean_up()
                 sys.exit(1)
 
-
-    def docker_checks(self)->bool:
+    def docker_checks(self) -> bool:
         """
         Constantly Check if Docker is running and start Redis container if needed
         :return: true is docker on
@@ -90,29 +92,28 @@ class LocalStack:
         """
         while True:
             try:
-            # check if docker is on
+                # check if docker is on
                 if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
                     self.__logger.critical(f"{self.__RED}This script uses docker, and it isn't running - please start docker retrying again in 5 seconds{self.__NC}")
                     time.sleep(5)
                     continue
 
                 # if docker container found running do nothing
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running',shell=True,stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     return True
 
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited',shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     # Check if Redis container is exited, start if needed
                     subprocess.run(f'docker start {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL)
                     return True
 
                 else:
-                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
                     return True
             except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                 self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
                 self.clean_up()
                 sys.exit(1)
-
 
     def ssh_env(self):
         """
@@ -121,37 +122,38 @@ class LocalStack:
         :exception KeyboardInterrupt: catching ^c
         """
         while True:
-            if self.vpn_checks() and self.docker_checks(): # if vpn and docker is on then only ssh
-                    if self.__dod_root:
-                        if not LocalStack.is_ssh_running(): # when ssh not running start ssh
-                            try:
-                                __env_name = input(f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
-                                __env_s=(
-                                    'prp1',
-                                    'prd1',
-                                    'dev2'
-                                )
-                                if __env_name in __env_s:
-                                    self.__logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
-                                    subprocess.run(f'ssh -fN {__env_name}', shell=True)
-                                    if LocalStack.is_ssh_running():
-                                        break
-                                else:
-                                    self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
-                                    continue
+            if self.vpn_checks() and self.docker_checks():  # if vpn and docker is on then only ssh
+                if self.__dod_root:
+                    if not LocalStack.is_ssh_running():  # when ssh not running start ssh
+                        try:
+                            __env_name = input(f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
+                            __env_s = (
+                                'prp1',
+                                'prd1',
+                                'dev2'
+                            )
+                            if __env_name in __env_s:
+                                self.__logger.info(f'{self.__GREEN}Starting ssh {__env_name}{self.__NC}')
+                                subprocess.run(f'ssh -fN {__env_name}', shell=True)
+                                if LocalStack.is_ssh_running():
+                                    break
+                            else:
+                                self.__logger.error(f'{self.__RED}Invalid argument \'{__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
+                                continue
 
-                            except KeyboardInterrupt: # trying to catch if somebody presses ^C
-                                self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
-                                self.clean_up()
-                                sys.exit(1)
+                        except KeyboardInterrupt:  # trying to catch if somebody presses ^C
+                            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.clean_up()
+                            sys.exit(1)
 
-                        else:
-                            self.__logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}") # if ssh session open then skip
-                            break
                     else:
-                        self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
-                        self.clean_up()
-                        sys.exit(1)
+                        self.__logger.warning(f"{self.__AMBER}ssh is running skipping{self.__NC}")  # if ssh session open then skip
+                        break
+                else:
+                    self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                    self.clean_up()
+                    sys.exit(1)
+
     def stack_up(self):
         """
         final checks
@@ -167,7 +169,7 @@ class LocalStack:
                     subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
                     self.__logger.error(f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
-                except FileNotFoundError: # catching if file or repo doesn't exist or env variable doesn't exist
+                except FileNotFoundError:  # catching if file or repo doesn't exist or env variable doesn't exist
                     self.__logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                     self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
@@ -202,7 +204,7 @@ class LocalStack:
             self.__logger.error('This script only works on Linux machines or WSL.')
 
     @staticmethod
-    def get_tmux_session_id()->int:
+    def get_tmux_session_id() -> int:
         """
         get tmux session id
         :return: tmux session id
@@ -227,7 +229,7 @@ class LocalStack:
             return 0
 
     @staticmethod
-    def is_ssh_running()->bool:
+    def is_ssh_running() -> bool:
         """
         checks if ssh is running
         :return: ssh running true or false
@@ -236,7 +238,7 @@ class LocalStack:
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
-    def get_ssh_pid()->int:
+    def get_ssh_pid() -> int:
         """
         gets ssh process id
         :return: ssh process id
@@ -248,6 +250,7 @@ class LocalStack:
             return 0
         return int(__out.decode().strip()) if __out else None
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     local = LocalStack()
     local.main()
