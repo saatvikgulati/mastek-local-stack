@@ -16,6 +16,7 @@ Author: Saatvik Gulati
 Date: 07/05/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
+              Requires dev2 env to be up to connect to any env
 Usage Example:
     To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
     When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
@@ -103,9 +104,9 @@ class LocalStack:
                         tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
                         sys.exit(1)
                     else:
-                        pbar.update(50)
-                        time.sleep(1)
-                        pbar.update(50)
+                        for _ in range(100):
+                            pbar.update(1)
+                            time.sleep(0.1)
                         tqdm.write(f'{self.__GREEN}{self.__env_name} Env is up{self.__NC}')
                         return True
         except subprocess.TimeoutExpired:
