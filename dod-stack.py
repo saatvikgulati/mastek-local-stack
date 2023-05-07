@@ -104,9 +104,9 @@ class LocalStack:
                         tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
                         sys.exit(1)
                     else:
-                        for _ in range(100):
-                            pbar.update(1)
-                            time.sleep(0.1)
+                        pbar.update(50)
+                        time.sleep(1)
+                        pbar.update(50)
                         tqdm.write(f'{self.__GREEN}{self.__env_name} Env is up{self.__NC}')
                         return True
         except subprocess.TimeoutExpired:
