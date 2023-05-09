@@ -13,7 +13,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 07/05/2023
+Date: 10/05/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -111,6 +111,7 @@ class LocalStack:
                         return True
         except subprocess.TimeoutExpired:
             tqdm.write(f'\n{self.__RED}You are not SC cleared to access prd{self.__NC}')
+            self.clean_up()
             sys.exit(1)
         except KeyboardInterrupt:
             tqdm.write(f'\n{self.__RED}Exiting script...{self.__NC}')
