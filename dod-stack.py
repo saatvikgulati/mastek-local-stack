@@ -102,6 +102,7 @@ class LocalStack:
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
                         tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
+                        self.clean_up()
                         sys.exit(1)
                     else:
                         pbar.update(50)
