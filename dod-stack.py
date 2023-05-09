@@ -190,18 +190,21 @@ class LocalStack:
                 if self.__dod_root:
                     if not LocalStack.is_ssh_running():  # when ssh not running start ssh
                         try:
-                            self.__env_name = input(
-                                f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
+                            valid = False
+                            while not valid:
+                                self.__env_name = input(
+                                    f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
 
-                            if self.__env_name in self.__environments and self.check_env():
-                                self.__logger.info(f'{self.__GREEN}Starting ssh {self.__env_name}{self.__NC}')
-                                subprocess.run(f'ssh -fN {self.__env_name}', shell=True)
-                                if LocalStack.is_ssh_running():
-                                    break
-                            else:
-                                self.__logger.error(
-                                    f'{self.__RED}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
-                                continue
+                                if self.__env_name in self.__environments and self.check_env():
+                                    valid = True
+                                    self.__logger.info(f'{self.__GREEN}Starting ssh {self.__env_name}{self.__NC}')
+                                    subprocess.run(f'ssh -fN {self.__env_name}', shell=True)
+                                    if LocalStack.is_ssh_running():
+                                        break
+                                else:
+                                    self.__logger.error(
+                                        f'{self.__RED}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
+                                    continue
 
                         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                             self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
@@ -225,7 +228,7 @@ class LocalStack:
         :exception KeyboardInterrupt: catching ^c
         :rtype: void
         """
-        if self.vpn_checks() and self.check_env() and self.docker_checks():
+        if self.vpn_checks() and self.docker_checks():
             if self.__dod_root:
                 try:
                     os.chdir(f'{self.__dod_root}/dod-stack')
