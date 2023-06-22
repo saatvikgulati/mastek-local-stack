@@ -95,7 +95,7 @@ class LocalStack:
         try:
             if self.__env_name in self.__environments:
                 __url = self.__environments[self.__env_name]
-                with tqdm(total=100, desc=f'{self.__GREEN}Checking {self.__env_name} environment',
+                with tqdm(total=100, desc=f'{self.__BLUE}Checking {self.__env_name} environment',
                           bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
                     __output = subprocess.run(f'curl -s -I {__url}', timeout=5,
                                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
