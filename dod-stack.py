@@ -102,7 +102,6 @@ class LocalStack:
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
                         pbar.set_description(f'{self.__RED}Checking {self.__env_name} environment (failed)')
-                        #tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
                         self.clean_up()
                         sys.exit(1)
                     else:
@@ -110,7 +109,6 @@ class LocalStack:
                         time.sleep(1)
                         pbar.update(50)
                         pbar.set_description(f'{self.__GREEN}Checking {self.__env_name} environment (success)')
-                        #tqdm.write(f'{self.__GREEN}{self.__env_name} Env is up{self.__NC}')
                         return True
         except subprocess.TimeoutExpired:
             tqdm.write(f'\n{self.__RED}You are not SC cleared to access prd{self.__NC}')
