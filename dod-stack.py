@@ -95,20 +95,22 @@ class LocalStack:
         try:
             if self.__env_name in self.__environments:
                 __url = self.__environments[self.__env_name]
-                with tqdm(total=100, desc=f'{self.__GREEN}Checking {self.__env_name} environment{self.__NC}',
+                with tqdm(total=100, desc=f'{self.__GREEN}Checking {self.__env_name} environment',
                           bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
                     __output = subprocess.run(f'curl -s -I {__url}', timeout=5,
                                             shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
-                        tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
+                        pbar.set_description(f'{self.__RED}Checking {self.__env_name} environment (failed)')
+                        #tqdm.write(f'{self.__RED}{self.__env_name} Env is down{self.__NC}')
                         self.clean_up()
                         sys.exit(1)
                     else:
                         pbar.update(50)
                         time.sleep(1)
                         pbar.update(50)
-                        tqdm.write(f'{self.__GREEN}{self.__env_name} Env is up{self.__NC}')
+                        pbar.set_description(f'{self.__GREEN}Checking {self.__env_name} environment (success)')
+                        #tqdm.write(f'{self.__GREEN}{self.__env_name} Env is up{self.__NC}')
                         return True
         except subprocess.TimeoutExpired:
             tqdm.write(f'\n{self.__RED}You are not SC cleared to access prd{self.__NC}')
@@ -118,6 +120,8 @@ class LocalStack:
             tqdm.write(f'\n{self.__RED}Exiting script...{self.__NC}')
             self.clean_up()
             sys.exit(1)
+        if LocalStack.is_ssh_running():
+            return self.__env_name
 
     def vpn_checks(self) -> bool:
         """
@@ -250,6 +254,7 @@ class LocalStack:
         cleans up docker and ssh session and tmux session
         :rtype: void
         """
+
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
         subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL,
