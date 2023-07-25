@@ -31,12 +31,14 @@ class LocalStack:
         self.__user = getpass.getuser()
         self.__cwd = os.getcwd()
         self.__dod_root = os.environ.get('DOD_ROOT')
-        self.__RED = '\033[0;31m'
-        self.__AMBER = '\033[38;5;208m'
-        self.__GREEN = '\033[0;32m'
-        self.__BLUE = '\033[0;94m'
-        self.__NC = '\033[0m'  # No Color
-        self.__VIOLET = '\033[1;35m'
+        self.colors = {
+            "RED": '\033[0;31m',
+            "AMBER": '\033[38;5;208m',
+            "GREEN": '\033[0;32m',
+            "BLUE": '\033[0;94m',
+            "NC": '\033[0m',  # No Color
+            "VIOLET": '\033[1;35m'
+        }
         self.__logger = self.setup_logger()
         self.__env_name = 'dev2'
         self.__environments = {
@@ -54,21 +56,21 @@ class LocalStack:
         __logger = logging.getLogger(__name__)
         # Setting logging colors
         __log_colors = {
-            logging.DEBUG: self.__BLUE,
-            logging.INFO: self.__GREEN,
-            logging.WARNING: self.__AMBER,
-            logging.ERROR: self.__RED,
-            logging.CRITICAL: self.__RED
+            logging.DEBUG: self.colors["BLUE"],
+            logging.INFO: self.colors["GREEN"],
+            logging.WARNING: self.colors["AMBER"],
+            logging.ERROR: self.colors["RED"],
+            logging.CRITICAL: self.colors["RED"]
         }
         __log_format = '%(asctime)s - %(levelname)s : %(message)s'
         __date_format = '%d-%m-%Y %H:%M:%S'
         # Set level and message color
         for level, color in __log_colors.items():
-            logging.addLevelName(level, color + logging.getLevelName(level) + self.__NC)
+            logging.addLevelName(level, color + logging.getLevelName(level) + self.colors["NC"])
 
         __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
         # Set different colors for asctime based on the logging level
-        __formatter.formatTime = lambda __record, __date_fmt=__date_format: f"{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.__NC}"
+        __formatter.formatTime = lambda __record, __date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
         __logger.setLevel(logging.DEBUG)
         __console_handler = logging.StreamHandler(sys.stdout)
         __logger.addHandler(__console_handler)
@@ -95,30 +97,29 @@ class LocalStack:
         try:
             if self.__env_name in self.__environments:
                 __url = self.__environments[self.__env_name]
-                with tqdm(total=100, desc=f'{self.__BLUE}Checking {self.__env_name} environment',
-                          bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
+                with tqdm(total=100, desc=f'{self.colors["BLUE"]}Checking {self.__env_name} environment', bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
                     __output = subprocess.run(f'curl -s -I {__url}', timeout=5, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
-                        pbar.set_description(f'{self.__RED}Checking {self.__env_name} environment (failed)')
+                        pbar.set_description(f'{self.colors["RED"]}Checking {self.__env_name} environment (failed)')
                         self.clean_up()
                         sys.exit(1)
                     else:
                         pbar.update(50)
                         time.sleep(1)
                         pbar.update(50)
-                        pbar.set_description(f'{self.__GREEN}Checking {self.__env_name} environment (success)')
+                        pbar.set_description(f'{self.colors["GREEN"]}Checking {self.__env_name} environment (success)')
                         return True
         except subprocess.TimeoutExpired:
-            tqdm.write(f'\n{self.__RED}You are not SC cleared to access prd{self.__NC}')
+            tqdm.write(f'\n{self.colors["RED"]}You are not SC cleared to access prd{self.colors["NC"]}')
             self.clean_up()
             sys.exit(1)
         except KeyboardInterrupt:
-            tqdm.write(f'\n{self.__RED}Exiting script...{self.__NC}')
+            tqdm.write(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
             self.clean_up()
             sys.exit(1)
         if LocalStack.is_ssh_running():
-            return self.__env_name
+            return True
 
     def vpn_checks(self) -> bool:
         """
@@ -129,16 +130,15 @@ class LocalStack:
         """
         while True:
             try:
-                if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True,
-                                  stdout=subprocess.DEVNULL).returncode == 0:
+                if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
                     return True
 
                 else:
-                    self.__logger.critical(f'{self.__RED}VPN is off retrying in 5 seconds{self.__NC}')
+                    self.__logger.critical(f'{self.colors["RED"]}VPN is off retrying in 5 seconds{self.colors["NC"]}')
                     time.sleep(5)
                     continue
             except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
                 self.clean_up()
                 sys.exit(1)
 
@@ -152,31 +152,25 @@ class LocalStack:
         while True:
             try:
                 # check if docker is on
-                if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL,
-                                  stderr=subprocess.DEVNULL).returncode != 0:
-                    self.__logger.critical(
-                        f"{self.__RED}This script uses docker, and it isn't running - please start docker retrying again in 5 seconds{self.__NC}")
+                if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+                    self.__logger.critical(f'{self.colors["RED"]}This script uses docker, and it isn\'t running - please start docker retrying again in 5 seconds{self.colors["NC"]}')
                     time.sleep(5)
                     continue
 
                 # if docker container found running do nothing
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running', shell=True,
-                                    stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     return True
 
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited', shell=True,
-                                    stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     # Check if Redis container is exited, start if needed
                     subprocess.run(f'docker start {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL)
                     return True
 
                 else:
-                    subprocess.run(
-                        f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',
-                        shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
                     return True
             except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
                 self.clean_up()
                 sys.exit(1)
 
@@ -193,31 +187,28 @@ class LocalStack:
                         try:
                             valid = False
                             while not valid:
-                                self.__env_name = input(
-                                    f"{self.__VIOLET}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.__NC}").strip().lower()
+                                self.__env_name = input(f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.colors["NC"]}').strip().lower()
 
                                 if self.__env_name in self.__environments and self.check_env():
                                     valid = True
-                                    self.__logger.info(f'{self.__GREEN}Starting ssh {self.__env_name}{self.__NC}')
+                                    self.__logger.info(f'{self.colors["GREEN"]}Starting ssh {self.__env_name}{self.colors["NC"]}')
                                     subprocess.run(f'ssh -fN {self.__env_name}', shell=True)
                                     if LocalStack.is_ssh_running():
                                         break
                                 else:
-                                    self.__logger.error(
-                                        f'{self.__RED}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.__NC}')
+                                    self.__logger.error(f'{self.colors["RED"]}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.colors["NC"]}')
                                     continue
 
                         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                            self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                            self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
                             self.clean_up()
                             sys.exit(1)
 
                     else:
-                        self.__logger.warning(
-                            f"{self.__AMBER}ssh is running skipping{self.__NC}")  # if ssh session open then skip
+                        self.__logger.warning(f'{self.colors["AMBER"]}ssh is running skipping{self.colors["NC"]}')  # if ssh session open then skip
                         break
                 else:
-                    self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                    self.__logger.error(f'{self.colors["RED"]}env variable DOD_ROOT not set{self.colors["NC"]}')
                     self.clean_up()
                     sys.exit(1)
 
@@ -233,18 +224,16 @@ class LocalStack:
             if self.__dod_root:
                 try:
                     os.chdir(f'{self.__dod_root}/dod-stack')
-                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True,
-                                   stderr=subprocess.DEVNULL)
+                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
-                    self.__logger.error(
-                        f"{self.__RED}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__NC}")
+                    self.__logger.error(f'{self.colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.colors["NC"]}')
                 except FileNotFoundError:  # catching if file or repo doesn't exist or env variable doesn't exist
-                    self.__logger.error(f"{self.__RED}No dod-stack repo or file exiting{self.__NC}")
+                    self.__logger.error(f'{self.colors["RED"]}No dod-stack repo or file exiting{self.colors["NC"]}')
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
-                    self.__logger.error(f'\n{self.__RED}Exiting script...{self.__NC}')
+                    self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
 
             else:
-                self.__logger.error(f"{self.__RED}env variable DOD_ROOT not set{self.__NC}")
+                self.__logger.error(f'{self.colors["RED"]}env variable DOD_ROOT not set{self.colors["NC"]}')
 
     def clean_up(self):
         """
@@ -254,10 +243,8 @@ class LocalStack:
 
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD_Stack', shell=True)
-        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
-        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
         """
@@ -268,7 +255,7 @@ class LocalStack:
             # set title of shell
             sys.stdout.write("\x1b]2;DOD-Stack\x07")
             # prints user and pwd
-            self.__logger.debug(f"{self.__BLUE}You are {self.__user} in {self.__cwd}{self.__NC}")
+            self.__logger.debug(f'{self.colors["BLUE"]}You are {self.__user} in {self.__cwd}{self.colors["NC"]}')
             LocalStack.update_pip()
             self.ssh_env()
             self.stack_up()
