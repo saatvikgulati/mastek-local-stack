@@ -104,7 +104,7 @@ class LocalStack:
                         pbar.set_description(f'{self.__colors["GREEN"]}Checking {self.__env_name} environment (success)')
                         return True
         except subprocess.TimeoutExpired:
-            tqdm.write(f'\n{self.__colors["GREEN"]}You are not SC cleared to access prd{self.__colors["NC"]}')
+            tqdm.write(f'\n{self.__colors["RED"]}You are not SC cleared to access prd{self.__colors["NC"]}')
             self.clean_up()
             sys.exit(1)
         except KeyboardInterrupt:
@@ -147,8 +147,7 @@ class LocalStack:
                 # check if docker is on
                 if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL,
                                   stderr=subprocess.DEVNULL).returncode != 0:
-                    self.__logger.critical(
-                        f'{self.__colors["RED"]}This script uses docker, and it isn\'t running - please start docker retrying again in 5 seconds{self.__colors["NC"]}')
+                    self.__logger.critical(f'{self.__colors["RED"]}This script uses docker, and it isn\'t running - please start docker retrying again in 5 seconds{self.__colors["NC"]}')
                     time.sleep(5)
                     continue
 
@@ -186,8 +185,7 @@ class LocalStack:
 
                                 if self.__env_name in self.__environments and self.check_env():
                                     valid = True
-                                    self.__logger.info(
-                                        f'{self.__colors["GREEN"]}Starting ssh {self.__env_name}{self.__colors["NC"]}')
+                                    self.__logger.info(f'{self.__colors["GREEN"]}Starting ssh {self.__env_name}{self.__colors["NC"]}')
                                     subprocess.run(f'ssh -fN {self.__env_name}', shell=True)
                                     if LocalStack.is_ssh_running():
                                         break
@@ -202,8 +200,7 @@ class LocalStack:
                             sys.exit(1)
 
                     else:
-                        self.__logger.warning(
-                            f'{self.__colors["AMBER"]}ssh is running skipping{self.__colors["NC"]}')  # if ssh session open then skip
+                        self.__logger.warning(f'{self.__colors["AMBER"]}ssh is running skipping{self.__colors["NC"]}')  # if ssh session open then skip
                         break
                 else:
                     self.__logger.error(f'{self.__colors["RED"]}env variable DOD_ROOT not set{self.__colors["NC"]}')
@@ -222,8 +219,7 @@ class LocalStack:
             if self.__dod_root:
                 try:
                     os.chdir(f'{self.__dod_root}/dod-stack')
-                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True,
-                                   stderr=subprocess.DEVNULL)
+                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
                 except subprocess.CalledProcessError as e:
                     self.__logger.error(f'{self.__colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.__colors["NC"]}')
                 except FileNotFoundError:  # catching if file or repo doesn't exist or env variable doesn't exist
@@ -242,8 +238,7 @@ class LocalStack:
 
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
-        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
