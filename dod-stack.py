@@ -239,8 +239,7 @@ class LocalStack:
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD\ Stack', shell=True)
         subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     @staticmethod
     def update_pip() -> None:
