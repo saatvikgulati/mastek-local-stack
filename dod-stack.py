@@ -89,8 +89,7 @@ class LocalStack:
         try:
             if self.__env_name in self.__environments:
                 __url = self.__environments[self.__env_name]
-                with tqdm(total=100, desc=f'{self.__colors["BLUE"]}Checking {self.__env_name} environment',
-                          bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
+                with tqdm(total=100, desc=f'{self.__colors["BLUE"]}Checking {self.__env_name} environment', bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
                     __output = subprocess.run(f'curl -s -I {__url}', timeout=5, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
