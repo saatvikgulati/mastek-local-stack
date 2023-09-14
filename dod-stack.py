@@ -13,7 +13,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 29/08/2023
+Date: 14/09/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -44,7 +44,8 @@ class LocalStack:
         self.__environments = {
             'prd1': 'https://dod-dashboard-prd1-kube1.service.pr.iptho.co.uk',
             'prp1': 'https://dod-dashboard-prp1-kube1.service.np.iptho.co.uk',
-            'dev2': 'https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk'
+            'dev2': 'https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk',
+            'dev1': 'https://dod-dashboard-ho-it-dev1-i-cw-ops-kube1.service.np.iptho.co.uk'
         }
 
     def get_valid_ports(self)->List:
@@ -301,7 +302,7 @@ class LocalStack:
                         try:
                             valid = False
                             while not valid:
-                                self.__env_name = input(f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\n{self.colors["NC"]}').strip().lower()
+                                self.__env_name = input(f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
                                 if self.__env_name in self.__environments and self.check_env():
                                     valid = True
                                     self.__logger.info(f'{self.colors["GREEN"]}Starting ssh {self.__env_name}{self.colors["NC"]}')
