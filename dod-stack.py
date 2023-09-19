@@ -13,7 +13,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 14/09/2023
+Date: 19/09/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -280,7 +280,10 @@ class LocalStack:
                     # Check if Redis container is exited, start if needed
                     subprocess.run(f'docker start {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL)
                     return True
-
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=created', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                    self.clean_up()
+                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
+                    return True
                 else:
                     subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
                     return True
