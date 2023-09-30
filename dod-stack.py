@@ -13,7 +13,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 19/09/2023
+Date: 30/09/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -82,6 +82,10 @@ class LocalStack:
                 # Add local forwards from the last host block if needed
                 if inside_host_block and self.__env_name in host_line:
                     valid_ports.extend(local_forwards)
+        else:
+            self.__logger.error(f'{self.colors["RED"]}~/.ssh/config file not found{self.colors["NC"]}')
+            self.clean_up()
+            sys.exit(1)
 
         return valid_ports
 
