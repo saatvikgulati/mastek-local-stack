@@ -5,6 +5,7 @@ import sys
 import logging
 import time
 from typing import List
+
 try:
     from tqdm.auto import tqdm
 except ImportError:
@@ -13,7 +14,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 30/09/2023
+Date: 29/11/2023
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -48,7 +49,7 @@ class LocalStack:
             'dev1': 'https://dod-dashboard-ho-it-dev1-i-cw-ops-kube1.service.np.iptho.co.uk'
         }
 
-    def get_valid_ports(self)->List:
+    def get_valid_ports(self) -> List:
         """
         fetches all the ports from config
         :rtype: List
@@ -112,7 +113,8 @@ class LocalStack:
 
                     # Compare only if the host is "localhost" and port matches the env_port
                     if pgpass_host == 'localhost' and pgpass_port == env_port:
-                        self.__logger.info(f'{self.colors["GREEN"]}Port {pgpass_port} found in .pgpass{self.colors["NC"]}')
+                        self.__logger.info(
+                            f'{self.colors["GREEN"]}Port {pgpass_port} found in .pgpass{self.colors["NC"]}')
                         return True
 
         self.__logger.error(f'{self.colors["RED"]}Port {env_port} not found in .pgpass{self.colors["NC"]}')
@@ -125,10 +127,16 @@ class LocalStack:
         :rtype: None
         :return: null
         """
-        os.chdir(f'{self.__dod_root}/dod-stack')
+        try:
+            os.chdir(f'{self.__dod_root}/dod-stack')
+        except FileNotFoundError:
+            self.__logger.error(f'{self.colors["RED"]}No dod-stack repo or file exiting{self.colors["NC"]}')
+            self.clean_up()
+            sys.exit(1)
 
         if not os.path.exists(f'{self.__dod_root}/dod-stack/.env'):
-            self.__logger.error(f'{self.colors["RED"]} {self.__dod_root}/dod-stack/.env file not found{self.colors["NC"]}')
+            self.__logger.error(
+                f'{self.colors["RED"]} {self.__dod_root}/dod-stack/.env file not found{self.colors["NC"]}')
             self.clean_up()
             sys.exit(1)
 
@@ -149,20 +157,24 @@ class LocalStack:
 
                     if env_port in valid_ports:
                         if self.compare_pgpass_and_env(env_port):
-                            self.__logger.info(f'{self.colors["GREEN"]}Valid port found {env_port} in SSH config, .env, and .pgpass{self.colors["NC"]}')
+                            self.__logger.info(
+                                f'{self.colors["GREEN"]}Valid port found {env_port} in SSH config, .env, and .pgpass{self.colors["NC"]}')
                             return True
                         else:
-                            self.__logger.error(f'{self.colors["RED"]}Port in .env does not match .pgpass {env_port}{self.colors["NC"]}')
+                            self.__logger.error(
+                                f'{self.colors["RED"]}Port in .env does not match .pgpass {env_port}{self.colors["NC"]}')
                             self.clean_up()
                             sys.exit(1)
                     else:
-                        self.__logger.error(f'{self.colors["RED"]}Port in .env does not match any valid ports{self.colors["NC"]}')
+                        self.__logger.error(
+                            f'{self.colors["RED"]}Port in .env does not match any valid ports{self.colors["NC"]}')
                         self.clean_up()
                         sys.exit(1)
 
                     break
             else:
-                self.__logger.error(f'{self.colors["RED"]}DATABASE_PORT_OPS_DOD_MART not found in .env{self.colors["NC"]}')
+                self.__logger.error(
+                    f'{self.colors["RED"]}DATABASE_PORT_OPS_DOD_MART not found in .env{self.colors["NC"]}')
                 self.clean_up()
                 sys.exit(1)
 
@@ -189,7 +201,8 @@ class LocalStack:
 
         __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
         # Set different colors for asctime based on the logging level
-        __formatter.formatTime = lambda __record, __date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
+        __formatter.formatTime = lambda __record,
+                                        __date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
         __logger.setLevel(logging.DEBUG)
         __console_handler = logging.StreamHandler(sys.stdout)
         __logger.addHandler(__console_handler)
@@ -216,8 +229,10 @@ class LocalStack:
         try:
             if self.__env_name in self.__environments:
                 __url = self.__environments[self.__env_name]
-                with tqdm(total=100, desc=f'{self.colors["BLUE"]}Checking {self.__env_name} environment', bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
-                    __output = subprocess.run(f'curl -s -I {__url}', timeout=10, shell=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                with tqdm(total=100, desc=f'{self.colors["BLUE"]}Checking {self.__env_name} environment',
+                          bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
+                    __output = subprocess.run(f'curl -s -I {__url}', timeout=10, shell=True, stdout=subprocess.PIPE,
+                                              stderr=subprocess.DEVNULL)
                     __status_code = int(__output.stdout.decode('utf-8').split()[1])
                     if __status_code == 502 or __status_code == 404 or __status_code == 503:
                         pbar.set_description(f'{self.colors["RED"]}Checking {self.__env_name} environment (failed)')
@@ -249,7 +264,8 @@ class LocalStack:
         """
         while True:
             try:
-                if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True, stdout=subprocess.DEVNULL).returncode == 0:
+                if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True,
+                                  stdout=subprocess.DEVNULL).returncode == 0:
                     return True
 
                 else:
@@ -271,25 +287,34 @@ class LocalStack:
         while True:
             try:
                 # check if docker is on
-                if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
-                    self.__logger.critical(f'{self.colors["RED"]}This script uses docker, and it isn\'t running - please start docker retrying again in 5 seconds{self.colors["NC"]}')
+                if subprocess.run('docker info', shell=True, stdout=subprocess.DEVNULL,
+                                  stderr=subprocess.DEVNULL).returncode != 0:
+                    self.__logger.critical(
+                        f'{self.colors["RED"]}This script uses docker, and it isn\'t running - please start docker retrying again in 5 seconds{self.colors["NC"]}')
                     time.sleep(5)
                     continue
 
                 # if docker container found running do nothing
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=running', shell=True,
+                                    stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     return True
 
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=exited', shell=True,
+                                    stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     # Check if Redis container is exited, start if needed
                     subprocess.run(f'docker start {self.__cont_name}', shell=True, stdout=subprocess.DEVNULL)
                     return True
-                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=created', shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
+                elif subprocess.run(f'docker ps -q -f name={self.__cont_name} -f status=created', shell=True,
+                                    stderr=subprocess.DEVNULL, stdout=subprocess.PIPE).stdout:
                     self.clean_up()
-                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.run(
+                        f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',
+                        shell=True, stdout=subprocess.DEVNULL)
                     return True
                 else:
-                    subprocess.run(f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest', shell=True, stdout=subprocess.DEVNULL)
+                    subprocess.run(
+                        f'docker run --name {self.__cont_name} -d -p 127.0.0.1:6379:6379 {self.__cont_name}:latest',
+                        shell=True, stdout=subprocess.DEVNULL)
                     return True
             except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                 self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
@@ -309,15 +334,18 @@ class LocalStack:
                         try:
                             valid = False
                             while not valid:
-                                self.__env_name = input(f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
+                                self.__env_name = input(
+                                    f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
                                 if self.__env_name in self.__environments and self.check_env():
                                     valid = True
-                                    self.__logger.info(f'{self.colors["GREEN"]}Starting ssh {self.__env_name}{self.colors["NC"]}')
+                                    self.__logger.info(
+                                        f'{self.colors["GREEN"]}Starting ssh {self.__env_name}{self.colors["NC"]}')
                                     subprocess.run(f'ssh -fN {self.__env_name}', shell=True)
                                     if LocalStack.is_ssh_running():
                                         break
                                 else:
-                                    self.__logger.error(f'{self.colors["RED"]}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.colors["NC"]}')
+                                    self.__logger.error(
+                                        f'{self.colors["RED"]}Invalid argument \'{self.__env_name}\' please mention prp1 or prd1 or dev2 pls enter again{self.colors["NC"]}')
                                     continue
 
                         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
@@ -326,7 +354,8 @@ class LocalStack:
                             sys.exit(1)
 
                     else:
-                        self.__logger.warning(f'{self.colors["AMBER"]}ssh is running skipping{self.colors["NC"]}')  # if ssh session open then skip
+                        self.__logger.warning(
+                            f'{self.colors["AMBER"]}ssh is running skipping{self.colors["NC"]}')  # if ssh session open then skip
                         break
                 else:
                     self.__logger.error(f'{self.colors["RED"]}env variable DOD_ROOT not set{self.colors["NC"]}')
@@ -345,11 +374,13 @@ class LocalStack:
             if self.__dod_root:
                 try:
                     os.chdir(f'{self.__dod_root}/dod-stack')
-                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True, stderr=subprocess.DEVNULL)
+                    subprocess.run('dotenv -e .env tmuxp load dod-stack.yaml', shell=True, check=True,
+                                   stderr=subprocess.DEVNULL)
                 except FileNotFoundError:  # catching if file or repo doesn't exist or env variable doesn't exist
                     self.__logger.error(f'{self.colors["RED"]}No dod-stack repo or file exiting{self.colors["NC"]}')
                 except subprocess.CalledProcessError as e:
-                    self.__logger.error(f'{self.colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.colors["NC"]}')
+                    self.__logger.error(
+                        f'{self.colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.colors["NC"]}')
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                     self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
 
@@ -364,8 +395,10 @@ class LocalStack:
 
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD_Stack', shell=True)
-        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL)
+        subprocess.run(f'docker container rm -f {self.__cont_name} && docker volume prune -f', shell=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def main(self):
         """
