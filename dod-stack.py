@@ -201,8 +201,7 @@ class LocalStack:
 
         __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
         # Set different colors for asctime based on the logging level
-        __formatter.formatTime = lambda __record,
-                                        __date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
+        __formatter.formatTime = lambda __record,__date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
         __logger.setLevel(logging.DEBUG)
         __console_handler = logging.StreamHandler(sys.stdout)
         __logger.addHandler(__console_handler)
