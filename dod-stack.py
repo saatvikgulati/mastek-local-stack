@@ -14,7 +14,7 @@ except ImportError:
 
 """
 Author: Saatvik Gulati
-Date: 29/11/2023
+Date: 11/08/2024
 Description: Runs a local stack and performs necessary checks.
 Requirements: Linux operating system, with env definitions updated in ssh config and .pgpass.
               Requires dev2 env to be up to connect to any env
@@ -43,7 +43,6 @@ class LocalStack:
         self.__logger = self.setup_logger()
         self.__env_name = 'dev2'
         self.__environments = {
-            'prd1': 'https://dod-dashboard-prd1-kube1.service.pr.iptho.co.uk',
             'prp1': 'https://dod-dashboard-prp1-kube1.service.np.iptho.co.uk',
             'dev2': 'https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk',
             'dev1': 'https://dod-dashboard-ho-it-dev1-i-cw-ops-kube1.service.np.iptho.co.uk'
@@ -201,7 +200,7 @@ class LocalStack:
 
         __formatter = logging.Formatter(fmt=__log_format, datefmt=__date_format)
         # Set different colors for asctime based on the logging level
-        __formatter.formatTime = lambda __record,__date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
+        __formatter.formatTime = lambda __record, __date_fmt=__date_format: f'{__log_colors[__record.levelno]}{time.strftime(__date_fmt, time.localtime(__record.created))}{self.colors["NC"]}'
         __logger.setLevel(logging.DEBUG)
         __console_handler = logging.StreamHandler(sys.stdout)
         __logger.addHandler(__console_handler)
@@ -334,7 +333,7 @@ class LocalStack:
                             valid = False
                             while not valid:
                                 self.__env_name = input(
-                                    f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\nprd1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
+                                    f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
                                 if self.__env_name in self.__environments and self.check_env():
                                     valid = True
                                     self.__logger.info(
@@ -379,7 +378,7 @@ class LocalStack:
                     self.__logger.error(f'{self.colors["RED"]}No dod-stack repo or file exiting{self.colors["NC"]}')
                 except subprocess.CalledProcessError as e:
                     self.__logger.error(
-                        f'{self.colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirement.txt{self.colors["NC"]}')
+                        f'{self.colors["RED"]}An error occurred: {e}\ninstall pip dependencies from dod-stack repo:\ncd $DOD_ROOT/dod-stack\npip install -r requirements.txt{self.colors["NC"]}')
                 except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                     self.__logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
 
