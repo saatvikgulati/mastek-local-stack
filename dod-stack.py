@@ -51,6 +51,7 @@ class LocalStack:
     def get_valid_ports(self) -> List:
         """
         fetches all the ports from config
+        fetches all the ports from config
         :rtype: List
         :return: return list of valid ports
         """
@@ -243,7 +244,7 @@ class LocalStack:
                         pbar.set_description(f'{self.colors["GREEN"]}Checking {self.__env_name} environment (success)')
                         return True
         except subprocess.TimeoutExpired:
-            tqdm.write(f'\n{self.colors["RED"]}You are not SC cleared to access prd{self.colors["NC"]}')
+            tqdm.write(f'\n{self.colors["RED"]}Something went wrong pls check you have appropriate tooling{self.colors["NC"]}')
             self.clean_up()
             sys.exit(1)
         except KeyboardInterrupt:
