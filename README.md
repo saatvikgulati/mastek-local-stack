@@ -3,7 +3,7 @@
 
 Author: Saatvik Gulati
 
-Date: 25/07/2023
+Date: 11/08/2024
 
 Description: Runs a local stack and performs necessary checks.
 
@@ -11,6 +11,6 @@ Requirements: Linux operating system, with env definitions updated in ssh config
 
 Usage Example:
   * To run the file, use the command `python dod-stack.py` or `python3 dod-stack.py` or `dod-stack.py` if alias is set.
-  * When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
+  * When prompted, enter the env you want to ssh to (prp1, dev1, dev2).
 
 
