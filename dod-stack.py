@@ -406,7 +406,9 @@ class LocalStack:
 
         if LocalStack.get_tmux_session_id():
             subprocess.run('tmux kill-session -t DOD_Stack', shell=True)
-        subprocess.run(f'kill -9 {str(LocalStack.get_ssh_pid())}', shell=True, stdout=subprocess.DEVNULL,
+        ssh_pids = self.get_ssh_pid()
+        for pid in ssh_pids:
+            subprocess.run(f'kill -9 {pid}', shell=True, stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL)
         subprocess.run(f'docker container rm -f {self.cont_name} && docker volume prune -f', shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -463,7 +465,7 @@ class LocalStack:
         return True if LocalStack.get_ssh_pid() else False
 
     @staticmethod
-    def get_ssh_pid() -> int:
+    def get_ssh_pid() -> List[int]:
         """
         gets ssh process id
         :return: ssh process id
@@ -472,8 +474,8 @@ class LocalStack:
         process = subprocess.Popen('lsof -t -i:22', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = process.communicate()
         if err:
-            return 0
-        return int(out.decode().strip()) if out else None
+            return []
+        return [int(pid) for pid in out.decode().strip().split()] if out else []
 
 
 if __name__ == '__main__':
