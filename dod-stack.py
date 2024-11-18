@@ -268,7 +268,7 @@ class LocalStack:
             return False
         except KeyboardInterrupt:
             self.logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
-            for future in futures.values():
+            for future in futures:
                 if future.running():
                     future.cancel()
             self.clean_up()
