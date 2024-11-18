@@ -245,7 +245,12 @@ class LocalStack:
         except KeyboardInterrupt:
             raise
 
-    def run_checks(self):
+    def run_checks(self) -> bool:
+        """
+        Runs all the checks concurrently
+        :return True if all the checks pass
+        :rtype: bool
+        """
         try:
             with cf.ThreadPoolExecutor(max_workers=3) as ex:
                 futures = (
@@ -263,7 +268,7 @@ class LocalStack:
             return False
         except KeyboardInterrupt:
             self.logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
-            for future in futures:
+            for future in futures.values():
                 if future.running():
                     future.cancel()
             self.clean_up()
