@@ -1,0 +1,22 @@
+{
+    "colors": {
+        "RED": "\u001b[0;31m",
+        "AMBER": "\u001b[38;5;208m",
+        "GREEN": "\u001b[0;32m",
+        "BLUE": "\u001b[0;94m",
+        "NC": "\u001b[0m",
+        "VIOLET": "\u001b[1;35m"
+    },
+    "env_name": "dev2",
+    "docker": {
+        "container_name": "redis"
+    },
+    "environments": {
+        "prp1": "https://dod-dashboard-prp1-kube1.service.np.iptho.co.uk",
+        "dev2": "https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk",
+        "dev1": "https://dod-dashboard-ho-it-dev1-i-cw-ops-kube1.service.np.iptho.co.uk"
+    },
+    "vpn_url": "https://vpn-test-emzo-kops1.service.ops.iptho.co.uk",
+    "ssh_config_path": "~/.ssh/config",
+    "pgpass_path": "~/.pgpass"
+}

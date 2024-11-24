@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import subprocess
 import os
+import json
 import getpass
 import sys
 import logging
@@ -30,25 +31,19 @@ Usage Example:
 class LocalStack:
 
     def __init__(self):
-        self.cont_name = 'redis'
+        # Load config
+        if not os.path.exists('config/config.json'):
+            raise Exception('Config file not found')
+        with open('config/config.json','r') as f:
+            self.config = json.load(f)
+        self.cont_name = self.config['docker']['container_name']
         self.user = getpass.getuser()
         self.cwd = os.getcwd()
         self.dod_root = os.environ.get('DOD_ROOT')
-        self.colors = {
-            "RED": '\033[0;31m',
-            "AMBER": '\033[38;5;208m',
-            "GREEN": '\033[0;32m',
-            "BLUE": '\033[0;94m',
-            "NC": '\033[0m',  # No Color
-            "VIOLET": '\033[1;35m'
-        }
+        self.colors = self.config['colors']
         self.logger = self.setup_logger()
-        self.env_name = 'dev2'
-        self.environments = {
-            'prp1': 'https://dod-dashboard-prp1-kube1.service.np.iptho.co.uk',
-            'dev2': 'https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk',
-            'dev1': 'https://dod-dashboard-ho-it-dev1-i-cw-ops-kube1.service.np.iptho.co.uk'
-        }
+        self.env_name = self.config['env_name']
+        self.environments = self.config['environments']
 
     def get_valid_ports(self) -> List:
         """
@@ -57,7 +52,7 @@ class LocalStack:
         :rtype: List
         :return: return a List of valid ports
         """
-        ssh_config_path = os.path.expanduser('~/.ssh/config')
+        ssh_config_path = os.path.expanduser(self.config['ssh_config_path'])
         valid_ports = []
 
         if os.path.exists(ssh_config_path):
@@ -99,7 +94,7 @@ class LocalStack:
         :rtype: bool
         :return: True if port found in .pgpass, False otherwise
         """
-        pgpass_file_path = os.path.expanduser("~/.pgpass")
+        pgpass_file_path = os.path.expanduser(self.config['pgpass_path'])
 
         if not os.path.exists(pgpass_file_path):
             self.logger.error(f'{self.colors["RED"]}~/.pgpass file not found{self.colors["NC"]}')
@@ -258,10 +253,8 @@ class LocalStack:
                     ex.submit(self.check_env),
                     ex.submit(self.docker_checks)
                 )
-                vpn_pass = futures[0].result(timeout = 15)
-                check_pass = futures[1].result(timeout = 15)
-                docker_pass = futures[2].result(timeout = 15)
-            if vpn_pass and check_pass and docker_pass:
+                all_checks = [future.result(timeout = 15) for future in futures]
+            if all(all_checks):
                 return True
         except Exception as e:
             self.logger.error(e)
@@ -284,7 +277,7 @@ class LocalStack:
         :exception KeyboardInterrupt: catching ^c
         """
         try:
-            if subprocess.run('curl -s https://vpn-test-emzo-kops1.service.ops.iptho.co.uk/', shell=True,
+            if subprocess.run(f'curl -s {self.config["vpn_url"]}', shell=True,
                               stdout=subprocess.DEVNULL).returncode == 0:
                 return True
 
