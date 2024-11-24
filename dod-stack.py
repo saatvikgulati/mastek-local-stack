@@ -22,7 +22,7 @@ Requirements: Linux operating system, with env definitions updated in ssh config
               Requires dev2 env to be up to connect to any env
 Usage Example:
     To run the file, use the command 'python dod-stack.py' or 'python3 dod-stack.py' or dod-stack.py if alias is set.
-    When prompted, enter the env you want to ssh to (prp1, prd1, or dev2).
+    When prompted, enter the env you want to ssh to (prp1, dev1, or dev2).
 
 """
 
@@ -258,9 +258,9 @@ class LocalStack:
                     ex.submit(self.check_env),
                     ex.submit(self.docker_checks)
                 )
-                vpn_pass = futures[0].result(timeout = 15)
-                check_pass = futures[1].result(timeout = 15)
-                docker_pass = futures[2].result(timeout = 15)
+                vpn_pass = futures[0].result(timeout=15)
+                check_pass = futures[1].result(timeout=15)
+                docker_pass = futures[2].result(timeout=15)
             if vpn_pass and check_pass and docker_pass:
                 return True
         except Exception as e:
@@ -357,7 +357,7 @@ class LocalStack:
                                         break
                                 else:
                                     self.logger.error(
-                                        f'{self.colors["RED"]}Invalid argument \'{self.env_name}\' please mention prp1 or dev2 pls enter again{self.colors["NC"]}')
+                                        f'{self.colors["RED"]}Invalid argument \'{self.env_name}\' please mention prp1 or dev2 or dev1 pls enter again{self.colors["NC"]}')
 
                         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                             self.logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
