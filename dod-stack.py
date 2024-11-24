@@ -32,9 +32,9 @@ class LocalStack:
 
     def __init__(self):
         # Load config
-        if not os.path.exists('config/config.json'):
+        if not os.path.exists('dod_stack_config/config.json'):
             raise Exception('Config file not found')
-        with open('config/config.json','r') as f:
+        with open('dod_stack_config/config.json','r') as f:
             self.config = json.load(f)
         self.cont_name = self.config['docker']['container_name']
         self.user = getpass.getuser()
