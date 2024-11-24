@@ -258,9 +258,9 @@ class LocalStack:
                     ex.submit(self.check_env),
                     ex.submit(self.docker_checks)
                 )
-                vpn_pass = futures[0].result(timeout=15)
-                check_pass = futures[1].result(timeout=15)
-                docker_pass = futures[2].result(timeout=15)
+                vpn_pass = futures[0].result(timeout = 15)
+                check_pass = futures[1].result(timeout = 15)
+                docker_pass = futures[2].result(timeout = 15)
             if vpn_pass and check_pass and docker_pass:
                 return True
         except Exception as e:
