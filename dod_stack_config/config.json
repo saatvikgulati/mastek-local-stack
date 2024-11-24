@@ -8,9 +8,7 @@
         "VIOLET": "\u001b[1;35m"
     },
     "env_name": "dev2",
-    "docker": {
-        "container_name": "redis"
-    },
+    "container_name": "redis",
     "environments": {
         "prp1": "https://dod-dashboard-prp1-kube1.service.np.iptho.co.uk",
         "dev2": "https://dod-dashboard-ho-it-dev2-i-cw-ops-kube1.service.np.iptho.co.uk",
