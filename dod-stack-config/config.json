@@ -16,5 +16,6 @@
     },
     "vpn_url": "https://vpn-test-emzo-kops1.service.ops.iptho.co.uk",
     "ssh_config_path": "~/.ssh/config",
-    "pgpass_path": "~/.pgpass"
+    "pgpass_path": "~/.pgpass",
+    "DOD_ROOT": "DOD_ROOT"
 }

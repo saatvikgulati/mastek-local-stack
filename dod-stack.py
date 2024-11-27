@@ -36,10 +36,10 @@ class LocalStack:
             raise Exception('Config file not found')
         with open('dod-stack-config/config.json','r') as f:
             self.config = json.load(f)
+        self.dod_root = os.environ.get(self.config['DOD_ROOT'])
         self.cont_name = self.config['container_name']
         self.user = getpass.getuser()
         self.cwd = os.getcwd()
-        self.dod_root = os.environ.get('DOD_ROOT')
         self.colors = self.config['colors']
         self.logger = self.setup_logger()
         self.env_name = self.config['env_name']
