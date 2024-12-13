@@ -227,16 +227,17 @@ class LocalStack:
                 url = self.environments[self.env_name]
                 with tqdm(total=100, desc=f'{self.colors["BLUE"]}Checking {self.env_name} environment',
                           bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
-                    output = subprocess.run(f'curl -s -I {url}', timeout=10, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                    if output.returncode == 0:
+                    output = subprocess.run(f'curl -s -o /dev/null -w "%{{http_code}}" -I {url}', timeout=10, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    status_code = int(output.stdout.decode().strip())
+                    if status_code == 404 or status_code == 500 or status_code == 502 or status_code == 503:
+                        pbar.set_description(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
+                        raise Exception(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
+                    else:
                         pbar.update(50)
                         time.sleep(1)
                         pbar.update(50)
                         pbar.set_description(f'{self.colors["GREEN"]}Checking {self.env_name} environment (success)')
                         return True
-                    else:
-                        pbar.set_description(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
-                        raise Exception(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
         except KeyboardInterrupt:
             raise
 
