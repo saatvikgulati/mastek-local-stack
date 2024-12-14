@@ -229,7 +229,7 @@ class LocalStack:
                           bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
                     output = subprocess.run(f'curl -s -o /dev/null -w "%{{http_code}}" -I {url}', timeout=10, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     status_code = int(output.stdout.decode().strip())
-                    if status_code == 404 or status_code == 500 or status_code == 502 or status_code == 503:
+                    if status_code == 404 or status_code == 500 or status_code == 502 or status_code == 503 or status_code == 0:
                         pbar.set_description(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
                         raise Exception(f'{self.colors["RED"]}Checking {self.env_name} environment (failed)')
                     else:
