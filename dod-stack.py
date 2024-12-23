@@ -340,8 +340,10 @@ class LocalStack:
                         try:
                             valid = False
                             while not valid:
+                                envs = '\n'.join(self.environments.keys())
+                                invalid_envs = ' or '.join(self.environments.keys())
                                 self.env_name = input(
-                                    f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\nprp1\ndev2\ndev1\n{self.colors["NC"]}').strip().lower()
+                                    f'{self.colors["VIOLET"]}Please enter the env you want to ssh to:\n{envs}\n{self.colors["NC"]}').strip().lower()
                                 if self.env_name in self.environments:
                                     valid = True
                                     self.logger.info(
@@ -351,7 +353,7 @@ class LocalStack:
                                         break
                                 else:
                                     self.logger.error(
-                                        f'{self.colors["RED"]}Invalid argument \'{self.env_name}\' please mention prp1 or dev2 or dev1 pls enter again{self.colors["NC"]}')
+                                        f'{self.colors["RED"]}Invalid argument \'{self.env_name}\' please mention {invalid_envs} pls enter again{self.colors["NC"]}')
 
                         except KeyboardInterrupt:  # trying to catch if somebody presses ^C
                             self.logger.error(f'\n{self.colors["RED"]}Exiting script...{self.colors["NC"]}')
